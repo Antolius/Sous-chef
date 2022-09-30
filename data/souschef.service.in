@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=hr.from.josipantolis.souschef
+Exec=@EXEC_NAME@ --gapplication-service

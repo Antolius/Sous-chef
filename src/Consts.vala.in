@@ -1,0 +1,11 @@
+/*
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: 2022 Josip Antoliš <josip.antolis@protonmail.com>
+ */
+
+public class Souschef.Consts {
+    public const string PROJECT_NAME = @PROJECT_NAME@;
+    public const string VERSION = @VERSION@;
+    public const string RESOURCE_BASE = @RESOURCE_BASE@;
+    public const string LOCALEDIR = @LOCALEDIR@;
+}

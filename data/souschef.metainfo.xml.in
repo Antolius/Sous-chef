@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>hr.from.josipantolis.souschef</id>
+  <launchable type="desktop-id">hr.from.josipantolis.souschef.desktop</launchable>
+
+  <name>Sous-chef</name>
+  <summary>Your trusted kitchen companion</summary>
+  <description>
+    <p>
+    A recipe collection and management application.
+    </p>
+  </description>
+
+  <content_rating type="oars-1.1" />
+  <metadata_license>CC-BY-4.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <branding>
+    <color type="primary">#f37329</color>
+  </branding>
+  <developer_name>Josip Antoliš</developer_name>
+  <url type="homepage">https://github.com/antolius/sous-chef</url>
+  <url type="bugtracker">https://github.com/antolius/sous-chef/issues</url>
+
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/antolius/sous-chef/main/data/screenshots/default_style.png</image>
+      <caption>Sous-chef main application window, showcasing the default style</caption>
+    </screenshot>
+  </screenshots>
+</component>

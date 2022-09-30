@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+
+Name=Sous-chef
+GenericName=Recipe Manager
+Comment=Your trusted kitchen companion
+Categories=Education;Office;GTK;
+Keywords=Cooking;
+
+Exec=hr.from.josipantolis.souschef
+DBusActivatable=true
+Terminal=false
