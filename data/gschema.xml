@@ -7,7 +7,7 @@
       <description>Most recent window height</description>
     </key>
     <key name="window-width" type="i">
-      <default>650</default>
+      <default>680</default>
       <summary>Most recent window width</summary>
       <description>Most recent window width</description>
     </key>
@@ -18,7 +18,7 @@
     </key>
 
     <key name="pane-position" type="i">
-      <default>240</default>
+      <default>280</default>
       <summary>Pane position between the recipes catalog and current recipe view</summary>
       <description>Pane position between the recipes catalog and current recipe view</description>
     </key>

@@ -13,53 +13,20 @@ public class Souschef.MainWindow : Gtk.ApplicationWindow {
     }
 
     construct {
-        var catalog = create_catalog_view ();
-        var recipe = create_recipe_view ();
-        child = create_paned_for (catalog, recipe);
         hide_default_titlebar ();
+
+        var library = new LibraryView ();
+        var recipe = create_recipe_view ();
+        child = create_paned_for (library, recipe);
+
+        bind_window_state_to_settings ();
     }
 
-    private Gtk.Widget create_catalog_view () {
-        var start_window_controls = new Gtk.WindowControls (Gtk.PackType.START);
-
-        var search_entry = new Gtk.SearchEntry () {
-            placeholder_text = _("Search Recipes"),
-            hexpand = true,
-            margin_start = 16,
-            margin_end = 24,
-            margin_top = 4,
-            margin_bottom = 4
-        };
-
-        var add_recipe_button = new Gtk.Button.from_icon_name ("list-add");
-
-        var catalog_heder = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-        catalog_heder.add_css_class ("titlebar");
-        catalog_heder.add_css_class (Granite.STYLE_CLASS_FLAT);
-        catalog_heder.add_css_class (Granite.STYLE_CLASS_DEFAULT_DECORATION);
-        catalog_heder.append (start_window_controls);
-        catalog_heder.append (search_entry);
-        catalog_heder.append (add_recipe_button);
-
-        var catalog_header_handle = new Gtk.WindowHandle () {
-            child = catalog_heder
-        };
-
-        var catalog_list = new Gtk.ListBox () {
-            hexpand = true,
-            vexpand = true
-        };
-
-        var scrolled_catalog_list = new Gtk.ScrolledWindow () {
-            child = catalog_list
-        };
-
-        var catalog = new Gtk.Grid ();
-        catalog.add_css_class (Granite.STYLE_CLASS_VIEW);
-        catalog.attach (catalog_header_handle, 0, 0);
-        catalog.attach (scrolled_catalog_list, 0, 1);
-
-        return catalog;
+    private void bind_window_state_to_settings () {
+        var settings = new Settings (Consts.PROJECT_NAME);
+        settings.bind ("window-height", this, "default-height", SettingsBindFlags.DEFAULT);
+        settings.bind ("window-width", this, "default-width", SettingsBindFlags.DEFAULT);
+        settings.bind ("window-maximized", this, "maximized", SettingsBindFlags.DEFAULT);
     }
 
     private Gtk.Widget create_recipe_view () {
@@ -94,10 +61,11 @@ public class Souschef.MainWindow : Gtk.ApplicationWindow {
     private Gtk.Widget create_paned_for (Gtk.Widget start, Gtk.Widget end) {
         var paned = new Gtk.Paned (Gtk.Orientation.HORIZONTAL) {
             start_child = start,
+            resize_start_child = false,
+            shrink_start_child = true,
             end_child = end,
-            resize_end_child = false,
-            shrink_end_child = false,
-            shrink_start_child = false
+            resize_end_child = true,
+            shrink_end_child = false
         };
 
         var settings = new Settings (Consts.PROJECT_NAME);

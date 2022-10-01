@@ -4,10 +4,14 @@
  */
 
 public class Souschef.Application : Gtk.Application {
+
+    public DatabaseService db_service { get; construct; }
+
     public Application () {
         Object (
             application_id: Consts.PROJECT_NAME,
-            flags: ApplicationFlags.FLAGS_NONE
+            flags: ApplicationFlags.FLAGS_NONE,
+            db_service: new DatabaseService ()
         );
     }
 
@@ -17,15 +21,23 @@ public class Souschef.Application : Gtk.Application {
         add_icon_resources ();
         foce_elementary_style ();
         link_dark_mode_settings ();
+        db_service.init.begin (null, (obj, res) => {
+            try {
+                db_service.init.end (res);
+            } catch (DatabaseError e) {
+                error (e.message);
+            }
+        });
     }
 
     public override void activate () {
-        if (active_window == null) {
-            var main_window = new MainWindow (this);
-            link_to_gsettings (main_window);
+        if (active_window != null) {
+            active_window.present_with_time (Gdk.CURRENT_TIME);
+            return;
         }
 
-        active_window.present_with_time (Gdk.CURRENT_TIME);
+        var main_window = new MainWindow (this);
+        main_window.present ();
     }
 
     private void setup_localization () {
@@ -62,22 +74,5 @@ public class Souschef.Application : Gtk.Application {
             var dm = granite_settings.prefers_color_scheme == Granite.Settings.ColorScheme.DARK;
             gtk_settings.gtk_application_prefer_dark_theme = dm;
         });
-    }
-
-    private void link_to_gsettings (Gtk.ApplicationWindow window) {
-        /*
-        * This is very finicky. Bind size after present else set_titlebar gives us bad sizes
-        * Set maximize after height/width else window is min size on unmaximize
-        * Bind maximize as SET else get get bad sizes
-        */
-        var settings = new Settings (Consts.PROJECT_NAME);
-        settings.bind ("window-height", window, "default-height", SettingsBindFlags.DEFAULT);
-        settings.bind ("window-width", window, "default-width", SettingsBindFlags.DEFAULT);
-
-        if (settings.get_boolean ("window-maximized")) {
-            window.maximize ();
-        }
-
-        settings.bind ("window-maximized", window, "maximized", SettingsBindFlags.SET);
     }
 }

@@ -15,6 +15,14 @@ const_src = configure_file(
 common_sources = files(
     'Application.vala',
     'MainWindow.vala',
+    'Models/Amount.vala',
+    'Models/Ingredient.vala',
+    'Models/Recipe.vala',
+    'Models/Tag.vala',
+    'Models/Unit.vala',
+    'Services/DatabaseError.vala',
+    'Services/DatabaseService.vala',
+    'Widgets/LibraryView.vala',
 )
 common_sources += const_src
 

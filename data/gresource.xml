@@ -4,5 +4,9 @@
 
     <!--Stylesheet-->
     <file compressed="true">style.css</file>
+
+    <!--SQL-->
+    <file compressed="true">sql/01_create_tables.sql</file>
+    <file compressed="true">sql/02_insert_common_tags.sql</file>
   </gresource>
 </gresources>
