@@ -5,8 +5,11 @@
 
 public class Souschef.MainWindow : Gtk.ApplicationWindow {
 
+    public Application sous_chef_app { private get; construct; }
+
     public MainWindow (Application application) {
         Object (
+            sous_chef_app: application,
             application: application,
             title: _("Sous-chef")
         );
@@ -15,7 +18,7 @@ public class Souschef.MainWindow : Gtk.ApplicationWindow {
     construct {
         hide_default_titlebar ();
 
-        var library = new LibraryView ();
+        var library = new LibraryView (sous_chef_app.db_service);
         var recipe = create_recipe_view ();
         child = create_paned_for (library, recipe);
 
@@ -62,10 +65,10 @@ public class Souschef.MainWindow : Gtk.ApplicationWindow {
         var paned = new Gtk.Paned (Gtk.Orientation.HORIZONTAL) {
             start_child = start,
             resize_start_child = false,
-            shrink_start_child = true,
+            shrink_start_child = false,
             end_child = end,
             resize_end_child = true,
-            shrink_end_child = false
+            shrink_end_child = true
         };
 
         var settings = new Settings (Consts.PROJECT_NAME);

@@ -21,13 +21,7 @@ public class Souschef.Application : Gtk.Application {
         add_icon_resources ();
         foce_elementary_style ();
         link_dark_mode_settings ();
-        db_service.init.begin (null, (obj, res) => {
-            try {
-                db_service.init.end (res);
-            } catch (DatabaseError e) {
-                error (e.message);
-            }
-        });
+        db_service.init.begin ();
     }
 
     public override void activate () {
