@@ -20,7 +20,7 @@ common_sources = files(
     'Models/Recipe.vala',
     'Models/Tag.vala',
     'Models/Unit.vala',
-    'Services/DatabaseError.vala',
+    'Services/ServiceError.vala',
     'Services/DatabaseService.vala',
     'Widgets/LibraryView.vala',
 )

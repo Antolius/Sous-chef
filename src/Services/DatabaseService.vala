@@ -25,7 +25,7 @@ public class Souschef.DatabaseService : Object {
         );
     }
 
-    public async void init (Cancellable? cancel = null) throws DatabaseError {
+    public async void init (Cancellable? cancel = null) throws ServiceError {
         try {
             var exists = yield db_file_exists (cancel);
             if (!exists) {
@@ -34,7 +34,7 @@ public class Souschef.DatabaseService : Object {
 
             yield open_database (cancel);
             yield initialize_database (cancel);
-        } catch (DatabaseError e) {
+        } catch (ServiceError e) {
             _db_promise.set_exception (e);
             throw e;
         }
@@ -43,7 +43,7 @@ public class Souschef.DatabaseService : Object {
     }
 
 
-    private async bool db_file_exists (Cancellable? cancel) throws DatabaseError {
+    private async bool db_file_exists (Cancellable? cancel) throws ServiceError {
         try {
             var db_file = File.new_for_path (_db_file_path);
             yield db_file.query_info_async (
@@ -61,7 +61,7 @@ public class Souschef.DatabaseService : Object {
         }
     }
 
-    private async void create_empty_db_file (Cancellable? cancel) throws DatabaseError {
+    private async void create_empty_db_file (Cancellable? cancel) throws ServiceError {
         var db_file = File.new_for_path (_db_file_path);
         try {
             var ios = yield db_file.create_readwrite_async (
@@ -78,11 +78,11 @@ public class Souschef.DatabaseService : Object {
             }
             var err = _("Failed to create file %s because %s.")
                 .printf (_db_file_path, e.message);
-            throw new DatabaseError.FAILED_TO_CREATE_DATABASE_FILE (err);
+            throw new ServiceError.FAILED_TO_CREATE_DATABASE_FILE (err);
         }
     }
 
-    private async void open_database (Cancellable? cancel) throws DatabaseError {
+    private async void open_database (Cancellable? cancel) throws ServiceError {
         Idle.add (open_database.callback);
         yield;
         if (cancel.is_cancelled ()) {
@@ -92,11 +92,11 @@ public class Souschef.DatabaseService : Object {
         if (ec != Sqlite.OK) {
             var err = _("Failed to open database file %s with sqlite error code %d: %s")
                 .printf (_db_file_path, _db.errcode (), _db.errmsg ());
-            throw new DatabaseError.FAILED_TO_INIT_DATABASE (err);
+            throw new ServiceError.FAILED_TO_INIT_DATABASE (err);
         }
     }
 
-    private async void initialize_database (Cancellable? cancel) throws DatabaseError {
+    private async void initialize_database (Cancellable? cancel) throws ServiceError {
         var scripts = yield read_init_scripts_from_resources (cancel);
         foreach (var query in scripts) {
             Idle.add (initialize_database.callback);
@@ -109,12 +109,12 @@ public class Souschef.DatabaseService : Object {
             if (ec != Sqlite.OK) {
                 var err = _("Failed to execute initialization query, sqlite error code %d: %s")
                     .printf (_db.errcode (), _db.errmsg ());
-                throw new DatabaseError.FAILED_TO_INIT_DATABASE (err);
+                throw new ServiceError.FAILED_TO_INIT_DATABASE (err);
             }
         }
     }
 
-    private async Gee.List<string> read_init_scripts_from_resources (Cancellable? cancel) throws DatabaseError {
+    private async Gee.List<string> read_init_scripts_from_resources (Cancellable? cancel) throws ServiceError {
         var scripts_path = "/" + Consts.RESOURCE_BASE + "/sql";
         try {
             var script_names = resources_enumerate_children (scripts_path, ResourceLookupFlags.NONE);
@@ -136,7 +136,7 @@ public class Souschef.DatabaseService : Object {
 
             var err = _("Failed to read database initialization scripts from %s because: %s")
                 .printf (scripts_path, e.message);
-            throw new DatabaseError.FAILED_TO_INIT_DATABASE (err);
+            throw new ServiceError.FAILED_TO_INIT_DATABASE (err);
         }
     }
 
@@ -156,7 +156,7 @@ public class Souschef.DatabaseService : Object {
         return script;
     }
 
-    private DatabaseError cancel_error () {
-        return new DatabaseError.CANCELLED (_("Database initialization was caceled"));
+    private ServiceError cancel_error () {
+        return new ServiceError.CANCELLED (_("Database initialization was caceled"));
     }
 }
