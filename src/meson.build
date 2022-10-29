@@ -20,8 +20,9 @@ common_sources = files(
     'Models/Recipe.vala',
     'Models/Tag.vala',
     'Models/Unit.vala',
-    'Services/ServiceError.vala',
     'Services/DatabaseService.vala',
+    'Services/RecipesService.vala',
+    'Services/ServiceError.vala',
     'Widgets/LibraryView.vala',
 )
 common_sources += const_src

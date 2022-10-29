@@ -5,31 +5,31 @@
 
 public class Souschef.LibraryView : Gtk.Widget {
 
-    public DatabaseService db_service { private get; construct; }
-    private ListStore recipes_store {
-        private get;
-        default = new ListStore (typeof (Recipe));
-    }
+    public RecipesService recipes_service { private get; construct; }
     public Gee.List<Recipe> all_recipes {
         get;
-        set;
+        private set;
         default = new Gee.ArrayList<Recipe> ();
     }
     public string? search_term {
         get;
-        set;
+        private set;
         default = null;
     }
 
+    private ListStore recipes_store {
+        private get;
+        default = new ListStore (typeof (Recipe));
+    }
     private Gtk.WindowHandle header;
     private Gtk.InfoBar error_bar;
     private Gtk.ListBox recipes_list;
     private Gtk.ScrolledWindow scrolled_list;
 
-    public LibraryView (DatabaseService db_service) {
+    public LibraryView (RecipesService recipes_service) {
         Object (
             layout_manager: new Gtk.BoxLayout (Gtk.Orientation.VERTICAL),
-            db_service: db_service
+            recipes_service: recipes_service
         );
     }
 
@@ -46,29 +46,8 @@ public class Souschef.LibraryView : Gtk.Widget {
         };
         scrolled_list.insert_after (this, error_bar);
 
-        connect_to_db ();
-        notify["all-recipes"].connect (() => {
-            recipes_store.remove_all ();
-            foreach (var recipe in all_recipes) {
-                recipes_store.append (recipe);
-            }
-        });
-        notify["search-term"].connect (() => {
-            recipes_store.remove_all ();
-            if (search_term == null || search_term.length == 0) {
-               foreach (var recipe in all_recipes) {
-                    recipes_store.append (recipe);
-                }
-                return;
-            }
-
-            var lst = search_term.down ();
-            foreach (var recipe in all_recipes) {
-                if (recipe.title.down ().contains (lst)) {
-                    recipes_store.append (recipe);
-                }
-            }
-        });
+        connect_to_notifications ();
+        load_all_recipes ();
     }
 
     private Gtk.WindowHandle create_header () {
@@ -136,17 +115,39 @@ public class Souschef.LibraryView : Gtk.Widget {
         return list;
     }
 
-    private void connect_to_db () {
-        var future_db = db_service.db_future;
-        future_db.wait_async.begin ((obj, res) => {
-            try {
-                unowned Sqlite.Database db = future_db.wait_async.end (res);
-                load_all_recipes (db);
-            } catch (Gee.FutureError e) {
-                string err_msg = _("Failed to load recipes");
-                if (e is Gee.FutureError.EXCEPTION) {
-                    err_msg += "\n" + future_db.exception.message;
+    private void connect_to_notifications () {
+        notify["all-recipes"].connect (() => {
+            recipes_store.remove_all ();
+            foreach (var recipe in all_recipes) {
+                recipes_store.append (recipe);
+            }
+        });
+
+        notify["search-term"].connect (() => {
+            recipes_store.remove_all ();
+            if (search_term == null || search_term.length == 0) {
+               foreach (var recipe in all_recipes) {
+                    recipes_store.append (recipe);
                 }
+                return;
+            }
+
+            var lst = search_term.down ();
+            foreach (var recipe in all_recipes) {
+                if (recipe.title.down ().contains (lst)) {
+                    recipes_store.append (recipe);
+                }
+            }
+        });
+    }
+
+    private void load_all_recipes () {
+        recipes_service.load_all.begin ((obj, res) => {
+            try {
+                all_recipes = recipes_service.load_all.end (res);
+            } catch (ServiceError e) {
+                string err_msg = _("Failed to load recipes");
+                err_msg += "\n" + e.message;
                 error_bar.add_child (new Gtk.Label (err_msg) {
                     wrap = true,
                     wrap_mode = Pango.WrapMode.WORD
@@ -154,30 +155,6 @@ public class Souschef.LibraryView : Gtk.Widget {
                 error_bar.revealed = true;
             }
         });
-    }
-
-    private void load_all_recipes (Sqlite.Database db) {
-        var query = "SELECT * FROM Recipes";
-        string err_msg;
-        var loaded_recepies = new Gee.ArrayList<Recipe> ();
-        var ec = db.exec (query, (ignored, values) => {
-            var recipe = new Recipe () {
-                id = int.parse (values[0]),
-                title = values[1],
-            };
-            loaded_recepies.add (recipe);
-            return 0;
-        }, out err_msg);
-        if (ec != Sqlite.OK) {
-            err_msg = "Failed to load recepies\n" + err_msg;
-            error_bar.add_child (new Gtk.Label (err_msg) {
-                wrap = true,
-                wrap_mode = Pango.WrapMode.WORD
-            });
-            error_bar.revealed = true;
-        } else {
-            all_recipes = loaded_recepies;
-        }
     }
 
     public override void dispose () {

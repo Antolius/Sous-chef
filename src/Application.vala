@@ -6,12 +6,15 @@
 public class Souschef.Application : Gtk.Application {
 
     public DatabaseService db_service { get; construct; }
+    public RecipesService recipes_service { get; construct; }
 
     public Application () {
+      var db_service = new DatabaseService ();
         Object (
             application_id: Consts.PROJECT_NAME,
             flags: ApplicationFlags.FLAGS_NONE,
-            db_service: new DatabaseService ()
+            db_service: db_service,
+            recipes_service: new RecipesService (db_service)
         );
     }
 

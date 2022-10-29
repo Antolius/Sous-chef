@@ -5,6 +5,8 @@
 
 public errordomain Souschef.ServiceError {
     CANCELLED,
+    UNEXPECTED_ERROR,
     FAILED_TO_CREATE_DATABASE_FILE,
-    FAILED_TO_INIT_DATABASE
+    FAILED_TO_INIT_DATABASE,
+    FAILED_QUERY
 }
