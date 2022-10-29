@@ -55,11 +55,16 @@ public class Souschef.LibraryView : Gtk.Widget {
         });
         notify["search-term"].connect (() => {
             recipes_store.remove_all ();
+            if (search_term == null || search_term.length == 0) {
+               foreach (var recipe in all_recipes) {
+                    recipes_store.append (recipe);
+                }
+                return;
+            }
+
+            var lst = search_term.down ();
             foreach (var recipe in all_recipes) {
-                if (search_term == null
-                    || search_term.length == 0
-                    || recipe.title.contains (search_term)
-                ) {
+                if (recipe.title.down ().contains (lst)) {
                     recipes_store.append (recipe);
                 }
             }
