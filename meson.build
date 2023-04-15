@@ -12,6 +12,7 @@ add_global_arguments(
 dependencies = [
     dependency('gtk4'),
     dependency('granite-7'),
+    dependency('sqlite3'),
 ]
 
 subdir('data')

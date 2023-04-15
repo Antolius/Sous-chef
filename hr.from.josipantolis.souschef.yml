@@ -1,6 +1,6 @@
 app-id: hr.from.josipantolis.souschef
 runtime: io.elementary.Platform
-runtime-version: '7'
+runtime-version: '7.2'
 sdk: io.elementary.Sdk
 command: hr.from.josipantolis.souschef
 
