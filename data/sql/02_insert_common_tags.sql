@@ -4,9 +4,9 @@ INSERT OR IGNORE INTO Tags VALUES
     (2, 'Test');
 
 INSERT OR IGNORE INTO Recipes VALUES
-    (1, 'Pizza', NULL, NULL),
-    (2, 'Spaghetti Carbonara', NULL, NULL),
-    (3, 'Risotto', NULL, NULL);
+    (1, 'Pizza', 'Round and tasty', NULL),
+    (2, 'Spaghetti Carbonara', 'Smushy and tasty', NULL),
+    (3, 'Risotto', 'Silky and tasty', NULL);
 
 INSERT OR IGNORE INTO RecipeTags VALUES
     (1, 2),

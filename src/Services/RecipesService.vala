@@ -6,6 +6,7 @@
 public class Souschef.RecipesService : Object {
 
    public DatabaseService db_service { private get; construct; }
+   public Recipe? currently_open { get; set; default = null; }
 
    public RecipesService (DatabaseService db_service) {
       Object (db_service: db_service);
@@ -29,6 +30,8 @@ public class Souschef.RecipesService : Object {
             var recipe = new Recipe () {
                 id = id,
                 title = values[1],
+                description = values[2],
+                instructions = values[3]
             };
             loaded_recepies.add (recipe);
             return 0;

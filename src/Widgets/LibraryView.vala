@@ -114,6 +114,13 @@ public class Souschef.LibraryView : Gtk.Widget {
             title_label.add_css_class (Granite.STYLE_CLASS_H4_LABEL);
             return title_label;
         });
+        list.row_selected.connect (row => {
+            if (row == null) {
+                recipes_service.currently_open = null;
+            } else {
+                recipes_service.currently_open = all_recipes[row.get_index ()];
+            }
+        });
 
         return list;
     }

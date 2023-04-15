@@ -19,7 +19,7 @@ public class Souschef.MainWindow : Gtk.ApplicationWindow {
         hide_default_titlebar ();
 
         var library = new LibraryView (sous_chef_app.recipes_service);
-        var recipe = create_recipe_view ();
+        var recipe = create_recipe_view (sous_chef_app.recipes_service);
         child = create_paned_for (library, recipe);
 
         bind_window_state_to_settings ();
@@ -32,7 +32,7 @@ public class Souschef.MainWindow : Gtk.ApplicationWindow {
         settings.bind ("window-maximized", this, "maximized", SettingsBindFlags.DEFAULT);
     }
 
-    private Gtk.Widget create_recipe_view () {
+    private Gtk.Widget create_recipe_view (RecipesService recipes_service) {
         var end_window_controls = new Gtk.WindowControls (Gtk.PackType.END) {
             halign = Gtk.Align.END,
             hexpand = true
@@ -52,6 +52,10 @@ public class Souschef.MainWindow : Gtk.ApplicationWindow {
             hexpand = true,
             vexpand = true
         };
+        recipes_service.notify["currently-open"].connect (() => {
+            var desc = recipes_service?.currently_open?.description ?? "";
+            recipe_text.buffer.text = desc;
+        });
 
         var recipe = new Gtk.Grid ();
         recipe.add_css_class (Granite.STYLE_CLASS_VIEW);
