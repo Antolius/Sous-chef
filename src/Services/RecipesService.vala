@@ -44,6 +44,10 @@ public class Souschef.RecipesService : Object {
 
    private async unowned Sqlite.Database open_db () throws ServiceError {
         var future = db_service.db_future;
+        if (future.ready && future.exception != null) {
+            yield db_service.init ();
+            future = db_service.db_future;
+        }
         try {
             return yield future.wait_async ();
         } catch (Gee.FutureError e) {

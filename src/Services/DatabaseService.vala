@@ -26,6 +26,9 @@ public class Souschef.DatabaseService : Object {
     }
 
     public async void init (Cancellable? cancel = null) throws ServiceError {
+        if (db_future.ready) {
+            _db_promise = new Gee.Promise<weak Sqlite.Database> ();
+        }
         try {
             var exists = yield db_file_exists (cancel);
             if (!exists) {

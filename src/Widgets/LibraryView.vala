@@ -69,7 +69,9 @@ public class Souschef.LibraryView : Gtk.Widget {
             search_term = search_entry.text;
         });
 
-        var add_recipe_button = new Gtk.Button.from_icon_name ("list-add");
+        var add_recipe_button = new Gtk.Button.from_icon_name ("list-add") {
+            tooltip_text = _("Craft a new recipe")
+        };
 
         var header = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
         header.add_css_class ("titlebar");
@@ -99,6 +101,7 @@ public class Souschef.LibraryView : Gtk.Widget {
             margin_top = 8
         };
 
+        list.add_css_class (Granite.STYLE_CLASS_RICH_LIST);
         list.bind_model (recipes_store, (element) => {
             var recipe = (Recipe) element;
             var title_label = new Gtk.Label (recipe.title) {
@@ -146,12 +149,32 @@ public class Souschef.LibraryView : Gtk.Widget {
             try {
                 all_recipes = recipes_service.load_all.end (res);
             } catch (ServiceError e) {
-                string err_msg = _("Failed to load recipes");
-                err_msg += "\n" + e.message;
-                error_bar.add_child (new Gtk.Label (err_msg) {
+                var err_title = new Gtk.Label (_("Failed to load recipes")) {
                     wrap = true,
-                    wrap_mode = Pango.WrapMode.WORD
+                    wrap_mode = Pango.WrapMode.WORD,
+                    halign = Gtk.Align.START
+                };
+                err_title.add_css_class (Granite.STYLE_CLASS_H4_LABEL);
+                var err_txt = new Gtk.Label (e.message) {
+                    wrap = true,
+                    wrap_mode = Pango.WrapMode.WORD,
+                    halign = Gtk.Align.START
+                };
+                var err_desc = new Gtk.Box (Gtk.Orientation.VERTICAL, 16);
+                err_desc.append (err_title);
+                err_desc.append (err_txt);
+                error_bar.add_child (err_desc);
+                var retry_btn = new Gtk.Button.from_icon_name ("view-refresh-symbolic") {
+                    tooltip_text = _("Retry loading recipes")
+                };
+                retry_btn.add_css_class (Granite.STYLE_CLASS_ERROR);
+                retry_btn.clicked.connect (() => {
+                    error_bar.revealed = false;
+                    error_bar.remove_child (err_desc);
+                    error_bar.remove_action_widget (retry_btn);
+                    load_all_recipes ();
                 });
+                error_bar.add_action_widget (retry_btn, 1);
                 error_bar.revealed = true;
             }
         });
