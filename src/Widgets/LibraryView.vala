@@ -56,10 +56,11 @@ public class Souschef.LibraryView : Gtk.Widget {
         var search_entry = new Gtk.SearchEntry () {
             placeholder_text = _("Search Recipes"),
             hexpand = true,
+            valign = Gtk.Align.BASELINE,
             margin_start = 16,
             margin_end = 24,
             margin_top = 4,
-            margin_bottom = 4
+            margin_bottom = 4,
         };
 
         search_entry.stop_search.connect (() => {

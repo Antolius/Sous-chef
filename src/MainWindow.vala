@@ -19,7 +19,7 @@ public class Souschef.MainWindow : Gtk.ApplicationWindow {
         hide_default_titlebar ();
 
         var library = new LibraryView (sous_chef_app.recipes_service);
-        var recipe = create_recipe_view (sous_chef_app.recipes_service);
+        var recipe = new RecipeView (sous_chef_app.recipes_service);
         child = create_paned_for (library, recipe);
 
         bind_window_state_to_settings ();
@@ -30,39 +30,6 @@ public class Souschef.MainWindow : Gtk.ApplicationWindow {
         settings.bind ("window-height", this, "default-height", SettingsBindFlags.DEFAULT);
         settings.bind ("window-width", this, "default-width", SettingsBindFlags.DEFAULT);
         settings.bind ("window-maximized", this, "maximized", SettingsBindFlags.DEFAULT);
-    }
-
-    private Gtk.Widget create_recipe_view (RecipesService recipes_service) {
-        var end_window_controls = new Gtk.WindowControls (Gtk.PackType.END) {
-            halign = Gtk.Align.END,
-            hexpand = true
-        };
-
-        var recipe_heder = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-        recipe_heder.add_css_class ("titlebar");
-        recipe_heder.add_css_class (Granite.STYLE_CLASS_FLAT);
-        recipe_heder.add_css_class (Granite.STYLE_CLASS_DEFAULT_DECORATION);
-        recipe_heder.append (end_window_controls);
-
-        var recipe_heder_handle = new Gtk.WindowHandle () {
-            child = recipe_heder
-        };
-
-        var recipe_text = new Gtk.TextView () {
-            hexpand = true,
-            vexpand = true
-        };
-        recipes_service.notify["currently-open"].connect (() => {
-            var desc = recipes_service?.currently_open?.description ?? "";
-            recipe_text.buffer.text = desc;
-        });
-
-        var recipe = new Gtk.Grid ();
-        recipe.add_css_class (Granite.STYLE_CLASS_VIEW);
-        recipe.attach (recipe_heder_handle, 0, 0);
-        recipe.attach (recipe_text, 0, 1);
-
-        return recipe;
     }
 
     private Gtk.Widget create_paned_for (Gtk.Widget start, Gtk.Widget end) {
