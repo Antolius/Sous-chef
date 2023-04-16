@@ -1,0 +1,3 @@
+[submodule "vapi/libcmark-vapi"]
+	path = vapi/libcmark-vapi
+	url = git@github.com:fabrixxm/libcmark-vapi.git

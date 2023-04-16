@@ -13,7 +13,7 @@ A recipes app based on [RecipeMD](https://github.com/tstehr/RecipeMD) specificat
 You may need to install elementary flatpak runtime first. You can do that with:
 
 ```sh
-flatpak install --user io.elementary.Sdk//7
+flatpak install --user io.elementary.Sdk//7.2
 ```
 
 To install Sous-chef use `flatpak-builder`, from project root directory run:
@@ -33,6 +33,34 @@ You can uninstall the app and remove its associated data with:
 ```sh
 flatpak uninstall hr.from.josipantolis.souschef --delete-data
 ```
+
+### Meson
+
+You can also build Sous-chef using the meson build system. In this case you'll need to install its dependencies locally:
+
+- libcmark-dev
+- libgranite-7-dev
+- libsqlite3-dev
+- libgtk-4-dev
+- meson
+- valac
+
+Run `meson build` to configure the build environment and then change to the build directory and run `ninja` to build
+
+```sh
+meson build --prefix=/usr
+cd build
+ninja
+```
+
+To install, use `ninja install`, then execute with `hr.from.josipantolis.souschef`
+
+```sh
+ninja install
+hr.from.josipantolis.souschef
+```
+
+To run tests, use `ninja test`.
 
 ## License
 

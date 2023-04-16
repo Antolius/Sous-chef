@@ -8,11 +8,19 @@ add_global_arguments(
     language:'c',
 )
 
+# Add 3rd party vapi bindings
+add_project_arguments([
+    '--vapidir',
+    join_paths(meson.current_source_dir(), 'vapi', 'libcmark-vapi')],
+    language: 'vala'
+)
+
 # List all dependencies
 dependencies = [
     dependency('gtk4'),
     dependency('granite-7'),
     dependency('sqlite3'),
+    dependency('libcmark'),
 ]
 
 subdir('data')

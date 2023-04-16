@@ -8,6 +8,7 @@ public class Souschef.RecipeView : Gtk.Widget {
     public RecipesService recipes_service { private get; construct; }
 
     private Gtk.WindowHandle header;
+    private Gtk.ScrolledWindow scrolled_recipe_text;
 
     public RecipeView (RecipesService recipes_service) {
         Object (
@@ -21,6 +22,10 @@ public class Souschef.RecipeView : Gtk.Widget {
 
         header = create_header ();
         header.insert_after (this, null);
+        scrolled_recipe_text = new Gtk.ScrolledWindow () {
+            child = create_recipe_text (),
+        };
+        scrolled_recipe_text.insert_after (this, header);
     }
 
     private Gtk.WindowHandle create_header () {
@@ -49,8 +54,41 @@ public class Souschef.RecipeView : Gtk.Widget {
         };
     }
 
+    private Gtk.TextView create_recipe_text () {
+        var recipe_text = new Gtk.TextView () {
+            hexpand = true,
+            vexpand = true,
+            margin_start = 16,
+            margin_end = 16,
+        };
+        recipes_service.notify["currently-open"].connect (() => {
+            var instructions = recipes_service?.currently_open?.instructions ?? "";
+            var final_txt = "";
+            CMark.Node node = CMark.Node.parse_document(instructions.data, CMark.OPT.DEFAULT);
+            CMark.Iter iter = new CMark.Iter(node);
+            CMark.EVENT evt;
+            while ((evt  = iter.next()) != CMark.EVENT.DONE) {
+                unowned CMark.Node? cnode = iter.get_node();
+
+                if (evt == CMark.EVENT.EXIT) {
+                    final_txt += "</%s>\n".printf(cnode.get_type_string());
+                }
+
+                if (evt == CMark.EVENT.ENTER) {
+                    final_txt += "<%s>\n".printf(cnode.get_type_string());
+                    if (cnode.get_literal() != null) {
+                        final_txt += "%s\n".printf(cnode.get_literal());
+                    }
+                }
+            }
+            recipe_text.buffer.text = final_txt;
+        });
+        return recipe_text;
+    }
+
     public override void dispose () {
         header.unparent ();
+        scrolled_recipe_text.unparent ();
     }
 
 }

@@ -11,6 +11,13 @@ finish-args:
   - '--device=dri'
 
 modules:
+  - name: libcmark
+    buildsystem: cmake
+    builddir: true
+    sources:
+      - type: git
+        url: 'https://github.com/commonmark/cmark.git'
+        tag: 0.30.3
   - name: souschef
     buildsystem: meson
     sources:
