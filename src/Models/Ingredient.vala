@@ -5,8 +5,8 @@
 
 public class Souschef.Ingredient : Object {
 
-    public int id { get; set; }
     public string name { get; set; }
+    public string? link { get; set; }
     public Amount? amount { get; set; }
 
 }

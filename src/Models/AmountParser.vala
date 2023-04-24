@@ -130,7 +130,9 @@ private class Souschef.AmountMatcher : Object {
 
     public string? get_unit_name() {
         if (match_info != null) {
-            return unit_name_extractor (match_info)?.chomp ()?.chug ();
+            var extracted = unit_name_extractor (match_info);
+            var cleaned = extracted?.chomp ()?.chug () ?? "";
+            return cleaned == "" ? null : cleaned;
         } else {
             return null;
         }

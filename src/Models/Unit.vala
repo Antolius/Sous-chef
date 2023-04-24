@@ -5,7 +5,6 @@
 
 public class Souschef.Unit : Object {
 
-    public int id { get; set; }
     public string kind { get; set; }
     public string system { get; set; }
     public string name { get; set; }

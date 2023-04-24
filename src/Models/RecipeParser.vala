@@ -23,6 +23,10 @@ public class Souschef.RecipeParser : Object {
         Gee.List<string> tags;
         Gee.List<Amount> yields;
         parse_tags_and_yields (out tags, out yields);
+        require_horizontal_line ();
+        var ingredients = parse_ingredient_groups ();
+        require_horizontal_line ();
+        var instructions = parse_instructions ();
 
         return new Recipe () {
             id = id,
@@ -30,6 +34,8 @@ public class Souschef.RecipeParser : Object {
             description = description,
             tags = tags,
             yields = yields,
+            ingredient_groups = ingredients,
+            instructions = instructions,
         };
     }
 
@@ -77,7 +83,7 @@ public class Souschef.RecipeParser : Object {
         unowned var node = _blocks.peek ();
         var sb = new StringBuilder ();
         while (node != null
-            && node.get_type () != CMark.NODE_TYPE.THEMATIC_BREAK
+            && !is_horizontal_line (node)
             && !is_yields_line (node)
             && !is_tags_line (node)
         ) {
@@ -98,9 +104,7 @@ public class Souschef.RecipeParser : Object {
         tags = null;
         yields = null;
         unowned var node = _blocks.peek ();
-        while (node != null
-            && node.get_type () != CMark.NODE_TYPE.THEMATIC_BREAK
-        ) {
+        while (node != null && !is_horizontal_line (node)) {
             if (is_tags_line (node)) {
                 if (tags != null) {
                     var err_msg = "Expected tags line to appear only once";
@@ -182,6 +186,113 @@ public class Souschef.RecipeParser : Object {
         return yields;
     }
 
+    private void require_horizontal_line () throws ParsingError {
+        unowned var node = _blocks.poll ();
+        if (node == null || !is_horizontal_line (node)) {
+            var msg_tmpl = "Expected a horizontal line, but got %s";
+            var err_msg = msg_tmpl.printf (node?.get_type_string () ?? "null");
+            throw new ParsingError.INVALID (err_msg);
+        }
+    }
+
+    private Gee.Map<string, Gee.List<Ingredient>> parse_ingredient_groups ()
+        throws ParsingError {
+        var groups = new Gee.HashMap<string, Gee.List<Ingredient>> ();
+        unowned var node = _blocks.peek ();
+        var group_name = "";
+        while (node != null && !is_horizontal_line (node)) {
+            switch (node.get_type ()) {
+                case CMark.NODE_TYPE.HEADING:
+                    group_name = serialize_inline (node);
+                    break;
+                case CMark.NODE_TYPE.LIST:
+                    var ingredients = parse_ingredients (node);
+                    groups[group_name] = ingredients;
+                    group_name = "";
+                    break;
+                default:
+                    var msg_tmpl = "Expected ingredients to be list with titles, but got %s";
+                    var err_msg = msg_tmpl.printf (node.get_type_string ());
+                    throw new ParsingError.INVALID (err_msg);
+            }
+
+            _blocks.poll ();
+            node = _blocks.peek ();
+        }
+        return groups;
+    }
+
+    private Gee.List<Ingredient> parse_ingredients (
+        CMark.Node root
+    ) throws ParsingError {
+        var ingredients = new Gee.ArrayList<Ingredient> ();
+        unowned var node = root.first_child ();
+        while (node != null) {
+            unowned var child = node.first_child ();
+            if (child == null) {
+                continue;
+            }
+
+            ingredients.add (parse_ingredient (child));
+            node = node.next ();
+        }
+        return ingredients;
+    }
+
+    private Ingredient parse_ingredient (CMark.Node? root) throws ParsingError {
+        debug (root.render_xml (CMark.OPT.DEFAULT));
+        string? link = null;
+        Amount? amount = null;
+        var name_builder = new StringBuilder ();
+        unowned var child = root.first_child ();
+        if (child == null) {
+            var err_msg = "Expected ingredient to have content, but got empty";
+            throw new ParsingError.INVALID (err_msg);
+        }
+
+        if (child.get_type () == CMark.NODE_TYPE.EMPH) {
+            var raw_amount = serialize_inline (child);
+            var amount_parser = new AmountParser (raw_amount);
+            amount = amount_parser.parse ();
+            child = child.next ();
+        }
+
+        while (child != null) {
+            var txt = child.get_literal ();
+            if (txt == "" || txt == " ") {
+                child = child.next ();
+                continue;
+            }
+
+            if (child.get_type () == CMark.NODE_TYPE.LINK) {
+                link = child.get_url ();
+            }
+
+            name_builder.append (serialize_inline (child));
+            child = child.next ();
+        }
+
+        return new Ingredient () {
+            link = link,
+            name = name_builder.str.chomp ().chug (),
+            amount = amount,
+        };
+    }
+
+    private string parse_instructions () {
+        unowned var node = _blocks.peek ();
+        var sb = new StringBuilder ();
+        while (node != null && !is_horizontal_line (node)) {
+            if (sb.len > 0) {
+                sb.append ("\n\n");
+            }
+            sb.append (serialize_inline (node));
+            _blocks.poll ();
+            node = _blocks.peek ();
+        }
+        return sb.str;
+    }
+
     private string serialize_inline (CMark.Node? root) throws ParsingError {
         if (root == null) {
             return "";
@@ -239,6 +350,10 @@ public class Souschef.RecipeParser : Object {
             }
         } while ((node = node.next()) != null);
         return sb.str;
+    }
+
+    private bool is_horizontal_line (CMark.Node? node) {
+        return node != null && node.get_type () == CMark.NODE_TYPE.THEMATIC_BREAK;
     }
 
     private bool is_yields_line (CMark.Node? node) {

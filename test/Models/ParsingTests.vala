@@ -78,6 +78,86 @@ It can have multiple lines an may even include pictures.
         assert_cmpfloat (yields[2].value, CompareOperator.EQ, 5.5);
         assert_nonnull (yields[2].unit);
         assert_cmpstr (yields[2].unit.name, CompareOperator.EQ, "Tassen");
+
+        var groups = actual.ingredient_groups;
+        assert_nonnull (groups);
+        assert_cmpint (groups.size, CompareOperator.EQ, 4);
+
+        var group = groups[""];
+        assert_nonnull (group);
+        assert_cmpint (group.size, CompareOperator.EQ, 2);
+
+        // - *5* ungrouped ingredient
+        var ing = group[0];
+        assert_nonnull (ing);
+        assert_nonnull (ing.amount);
+        assert_cmpfloat (ing.amount.value, CompareOperator.EQ, 5.0);
+        assert_null (ing.amount.unit);
+        assert_cmpstr (ing.name, CompareOperator.EQ, "ungrouped ingredient");
+
+        // - *5.2 ml* grouped ingredient
+        ing = group[1];
+        assert_nonnull (ing);
+        assert_nonnull (ing.amount);
+        assert_cmpfloat (ing.amount.value, CompareOperator.EQ, 5.2);
+        assert_nonnull (ing.amount.unit);
+        assert_cmpstr (ing.amount.unit.name, CompareOperator.EQ, "ml");
+        assert_cmpstr (ing.name, CompareOperator.EQ, "grouped ingredient");
+
+        group = groups["Group 1"];
+        assert_nonnull (group);
+        assert_cmpint (group.size, CompareOperator.EQ, 2);
+
+        // - *1* [link ingredient](./ingredients.md)
+        ing = group[0];
+        assert_nonnull (ing);
+        assert_nonnull (ing.amount);
+        assert_cmpfloat (ing.amount.value, CompareOperator.EQ, 1);
+        assert_null (ing.amount.unit);
+        assert_cmpstr (ing.name, CompareOperator.EQ, "link ingredient");
+        assert_cmpstr (ing.link, CompareOperator.EQ, "./ingredients.md");
+
+        // - unit is optional
+        ing = group[1];
+        assert_nonnull (ing);
+        assert_null (ing.amount);
+        assert_cmpstr (ing.name, CompareOperator.EQ, "unit is optional");
+
+        group = groups["Subgroup 1.1"];
+        assert_nonnull (group);
+        assert_cmpint (group.size, CompareOperator.EQ, 1);
+
+        // - *1.25 ml* ingredient
+        ing = group[0];
+        assert_nonnull (ing);
+        assert_nonnull (ing.amount);
+        assert_cmpfloat (ing.amount.value, CompareOperator.EQ, 1.25);
+        assert_nonnull (ing.amount.unit);
+        assert_cmpstr (ing.amount.unit.name, CompareOperator.EQ, "ml");
+        assert_cmpstr (ing.name, CompareOperator.EQ, "ingredient");
+
+        group = groups["Group 2"];
+        assert_nonnull (group);
+        assert_cmpint (group.size, CompareOperator.EQ, 2);
+
+        // - text isn't optional
+        ing = group[0];
+        assert_nonnull (ing);
+        assert_null (ing.amount);
+        assert_cmpstr (ing.name, CompareOperator.EQ, "text isn't optional");
+
+        // - *hey* amount is valid without factor
+        ing = group[1];
+        assert_nonnull (ing);
+        assert_nonnull (ing.amount);
+        // TODO: according to the spec this test seems invalid:
+        // assert_nonnull (ing.amount.unit);
+        // assert_cmpstr (ing.amount.unit.name, CompareOperator.EQ, "hey");
+        assert_cmpstr (ing.name, CompareOperator.EQ, "amount is valid without factor");
+
+        var instructions = actual.instructions;
+        assert_nonnull (instructions);
+        assert_cmpstr (instructions, CompareOperator.EQ, "Instructions are very instructive.");
     }
 
 }
