@@ -20,11 +20,16 @@ public class Souschef.RecipeParser : Object {
 
         var title = parse_title ();
         var description = parse_description ();
+        Gee.List<string> tags;
+        Gee.List<Amount> yields;
+        parse_tags_and_yields (out tags, out yields);
 
         return new Recipe () {
             id = id,
             title = title,
             description = description,
+            tags = tags,
+            yields = yields,
         };
     }
 
@@ -86,11 +91,102 @@ public class Souschef.RecipeParser : Object {
         return sb.str;
     }
 
+    private void parse_tags_and_yields (
+        out Gee.List<string>? tags,
+        out Gee.List<Amount>? yields
+    ) {
+        tags = null;
+        yields = null;
+        unowned var node = _blocks.peek ();
+        while (node != null
+            && node.get_type () != CMark.NODE_TYPE.THEMATIC_BREAK
+        ) {
+            if (is_tags_line (node)) {
+                if (tags != null) {
+                    var err_msg = "Expected tags line to appear only once";
+                    throw new ParsingError.INVALID (err_msg);
+                }
+                tags = parse_tags (node);
+            }
+
+            if (is_yields_line (node)) {
+                if (yields != null) {
+                    var err_msg = "Expected yields line to appear only once";
+                    throw new ParsingError.INVALID (err_msg);
+                }
+                yields = parse_yields (node);
+            }
+
+            _blocks.poll ();
+            node = _blocks.peek ();
+        }
+
+        tags = tags ?? new Gee.ArrayList<string> ();
+        yields = yields ?? new Gee.ArrayList<Amount> ();
+    }
+
+    private Gee.List<string>? parse_tags (CMark.Node node) {
+        var joined_tags = serialize_inline (node.first_child ());
+        if (joined_tags.length == 0) {
+            return null;
+        }
+
+        var tags = new Gee.ArrayList<string> ();
+        foreach (var raw_tag in joined_tags.split (",")) {
+            tags.add (raw_tag.chomp ().chug ());
+        }
+
+        return tags;
+    }
+
+    private Gee.List<Amount>? parse_yields (CMark.Node node) {
+        var joined_yields = serialize_inline (node.first_child ());
+        if (joined_yields.length == 0) {
+            return null;
+        }
+
+        var yields = new Gee.ArrayList<Amount> ();
+        string? raw_yield = null;
+        var split_yields = joined_yields.split (",");
+        for (var i = 0; i < split_yields.length; i++) {
+            var potential_raw_yield = split_yields[i];
+            if (potential_raw_yield.length == 0) {
+                if (raw_yield != null) {
+                    var parser = new AmountParser (raw_yield);
+                    yields.add (parser.parse ());
+                    raw_yield = null;
+                }
+                continue;
+            }
+
+            if (raw_yield != null) {
+                if (potential_raw_yield[0].isdigit ()) {
+                    raw_yield += "," + potential_raw_yield;
+                    var parser = new AmountParser (raw_yield);
+                    yields.add (parser.parse ());
+                    raw_yield = null;
+                } else {
+                    var parser = new AmountParser (raw_yield);
+                    yields.add (parser.parse ());
+                    raw_yield = potential_raw_yield;
+                }
+            } else {
+                raw_yield = potential_raw_yield;
+            }
+        }
+        if (raw_yield != null) {
+            var parser = new AmountParser (raw_yield);
+            yields.add (parser.parse ());
+        }
+
+        return yields;
+    }
+
     private string serialize_inline (CMark.Node? root) throws ParsingError {
         if (root == null) {
             return "";
         }
-        debug ("Serializing %s".printf (root.render_xml (CMark.OPT.DEFAULT)));
+
         unowned CMark.Node node = root.first_child ();
         if (node == null) {
             return (root.get_literal () ?? "")._chomp ();
@@ -146,11 +242,11 @@ public class Souschef.RecipeParser : Object {
     }
 
     private bool is_yields_line (CMark.Node? node) {
-        return is_line_wrapped_in (node, CMark.NODE_TYPE.EMPH);
+        return is_line_wrapped_in (node, CMark.NODE_TYPE.STRONG);
     }
 
    private bool is_tags_line (CMark.Node? node) {
-       return is_line_wrapped_in (node, CMark.NODE_TYPE.STRONG);
+       return is_line_wrapped_in (node, CMark.NODE_TYPE.EMPH);
    }
 
    private bool is_line_wrapped_in (CMark.Node? node, CMark.NODE_TYPE type) {
@@ -165,9 +261,7 @@ public class Souschef.RecipeParser : Object {
            return false;
        }
        var res = child.get_type () == type;
-       if (res) {
-           debug ("`%s` is a line wrapped in %s".printf (child.render_html (CMark.OPT.DEFAULT), child.get_type_string ()));
-       }
+
        return res;
    }
 

@@ -20,7 +20,7 @@ It can have multiple lines an may even include pictures.
 
 *vegetarian, vegan, not a real recipe*
 
-**5 cups, 20 ml, 5.5 Tassen**
+**5 cups, 20 ml, 5,5 Tassen**
 
 ---
 
@@ -46,13 +46,38 @@ It can have multiple lines an may even include pictures.
 Instructions are very instructive.""";
         var parser = new RecipeParser (0, given_recipe);
         var actual = parser.parse ();
-        assert (actual != null);
+        assert_nonnull (actual);
+
         assert_cmpstr (actual.title, CompareOperator.EQ, "Title");
+
         assert_cmpstr (actual.description, CompareOperator.EQ, """The description describes this recipe. It is delicious!
 
 It can have multiple lines an may even include pictures.
 
 <img src="../logo/recipemd-mark.svg" />""");
+
+        var tags = actual.tags;
+        assert_nonnull (tags);
+        assert_cmpint (tags.size, CompareOperator.EQ, 3);
+        assert_cmpstr (tags.get(0), CompareOperator.EQ, "vegetarian");
+        assert_cmpstr (tags.get(1), CompareOperator.EQ, "vegan");
+        assert_cmpstr (tags.get(2), CompareOperator.EQ, "not a real recipe");
+
+        var yields = actual.yields;
+        assert_nonnull (yields);
+        assert_cmpint (yields.size, CompareOperator.EQ, 3);
+        assert_cmpfloat (yields[0].value, CompareOperator.EQ, 5.0);
+        assert_nonnull (yields[0].unit);
+        assert_cmpstr (yields[0].unit.name, CompareOperator.EQ, "cups");
+        assert_cmpfloat (yields[1].value, CompareOperator.EQ, 20.0);
+        assert_nonnull (yields[1].unit);
+        assert_cmpstr (yields[1].unit.name, CompareOperator.EQ, "ml");
+        assert_cmpfloat (yields[1].value, CompareOperator.EQ, 20.0);
+        assert_nonnull (yields[1].unit);
+        assert_cmpstr (yields[1].unit.name, CompareOperator.EQ, "ml");
+        assert_cmpfloat (yields[2].value, CompareOperator.EQ, 5.5);
+        assert_nonnull (yields[2].unit);
+        assert_cmpstr (yields[2].unit.name, CompareOperator.EQ, "Tassen");
     }
 
 }
