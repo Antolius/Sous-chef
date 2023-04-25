@@ -29,7 +29,7 @@ It can have multiple lines an may even include pictures.
 
 ## Group 1
 
-- *1* [link ingredient](./ingredients.md)
+- *1 ⅕* [link ingredient](./ingredients.md)
 - unit is optional
 
 ### Subgroup 1.1
@@ -108,11 +108,11 @@ It can have multiple lines an may even include pictures.
         assert_nonnull (group);
         assert_cmpint (group.size, CompareOperator.EQ, 2);
 
-        // - *1* [link ingredient](./ingredients.md)
+        // - *1 ⅕* [link ingredient](./ingredients.md)
         ing = group[0];
         assert_nonnull (ing);
         assert_nonnull (ing.amount);
-        assert_cmpfloat (ing.amount.value, CompareOperator.EQ, 1);
+        assert_cmpfloat (ing.amount.value, CompareOperator.EQ, 1.2);
         assert_null (ing.amount.unit);
         assert_cmpstr (ing.name, CompareOperator.EQ, "link ingredient");
         assert_cmpstr (ing.link, CompareOperator.EQ, "./ingredients.md");
@@ -150,9 +150,8 @@ It can have multiple lines an may even include pictures.
         ing = group[1];
         assert_nonnull (ing);
         assert_nonnull (ing.amount);
-        // TODO: according to the spec this test seems invalid:
-        // assert_nonnull (ing.amount.unit);
-        // assert_cmpstr (ing.amount.unit.name, CompareOperator.EQ, "hey");
+        assert_nonnull (ing.amount.unit);
+        assert_cmpstr (ing.amount.unit.name, CompareOperator.EQ, "hey");
         assert_cmpstr (ing.name, CompareOperator.EQ, "amount is valid without factor");
 
         var instructions = actual.instructions;

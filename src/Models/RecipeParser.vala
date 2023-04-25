@@ -100,7 +100,7 @@ public class Souschef.RecipeParser : Object {
     private void parse_tags_and_yields (
         out Gee.List<string>? tags,
         out Gee.List<Amount>? yields
-    ) {
+    )  throws ParsingError {
         tags = null;
         yields = null;
         unowned var node = _blocks.peek ();
@@ -129,7 +129,7 @@ public class Souschef.RecipeParser : Object {
         yields = yields ?? new Gee.ArrayList<Amount> ();
     }
 
-    private Gee.List<string>? parse_tags (CMark.Node node) {
+    private Gee.List<string>? parse_tags (CMark.Node node) throws ParsingError {
         var joined_tags = serialize_inline (node.first_child ());
         if (joined_tags.length == 0) {
             return null;
@@ -143,7 +143,7 @@ public class Souschef.RecipeParser : Object {
         return tags;
     }
 
-    private Gee.List<Amount>? parse_yields (CMark.Node node) {
+    private Gee.List<Amount>? parse_yields (CMark.Node node) throws ParsingError {
         var joined_yields = serialize_inline (node.first_child ());
         if (joined_yields.length == 0) {
             return null;
@@ -279,7 +279,7 @@ public class Souschef.RecipeParser : Object {
         };
     }
 
-    private string parse_instructions () {
+    private string parse_instructions () throws ParsingError {
         unowned var node = _blocks.peek ();
         var sb = new StringBuilder ();
         while (node != null && !is_horizontal_line (node)) {
