@@ -17,29 +17,57 @@ public class Souschef.RecipesService : Object {
         var query = "SELECT * FROM Recipes";
         string sql_err_msg;
         var loaded_recepies = new Gee.ArrayList<Recipe> ();
+        var parsing_errors = new Gee.ArrayList<ParsingErrorDetails> ();
         var ec = db.exec (query, (n_columns, values) => {
             if (n_columns < 2) {
-                return -1; // did not get needed columns
+                parsing_errors.add (new ParsingErrorDetails () {
+                    error_message = "missing data",
+                });
+                return 0;
             }
 
             var id = int.parse (values[0]);
             if (id == 0) {
-                return -1; // failed to parse id
+                parsing_errors.add (new ParsingErrorDetails () {
+                    error_message = "invalid recipe id `%s`".printf (values[0]),
+                });
+                return 0;
             }
 
-            var recipe = new Recipe () {
-                id = id,
-                title = values[1],
-                description = values[2],
-                instructions = values[3]
-            };
-            loaded_recepies.add (recipe);
+            if (values[3] == null) {
+                parsing_errors.add (new ParsingErrorDetails () {
+                    error_message = "missing recipe content",
+                });
+                return 0;
+            }
+
+            try {
+                var parser = new RecipeParser (id, values[3]);
+                var recipe = parser.parse ();
+                loaded_recepies.add (recipe);
+            } catch (ParsingError err) {
+                parsing_errors.add (new ParsingErrorDetails () {
+                    recipe_title = values[1],
+                    error_message = err.message,
+                });
+            }
             return 0;
         }, out sql_err_msg);
         if (ec != Sqlite.OK) {
             var err_msg = "SQL query `%s` with sqlite error code %d: %s"
                 .printf (query, ec, sql_err_msg);
             throw new ServiceError.FAILED_QUERY (err_msg);
+        }
+        if (!parsing_errors.is_empty) {
+            var err_msg_builder = new StringBuilder ();
+            foreach (var err in parsing_errors) {
+                if (err_msg_builder.len != 0) {
+                    err_msg_builder.append (", ");
+                }
+                err_msg_builder.append ("recipe %s is incorrectly formatted".printf (err.recipe_title ?? ""));
+                err_msg_builder.append (" specifically: %s".printf (err.error_message));
+            }
+            throw new ServiceError.INVALID_DATA (err_msg_builder.str);
         }
 
         return loaded_recepies;
@@ -69,5 +97,9 @@ public class Souschef.RecipesService : Object {
             throw new ServiceError.UNEXPECTED_ERROR (err_msg);
         }
     }
+}
 
+private class Souschef.ParsingErrorDetails : Object {
+    public string? recipe_title { get; set; }
+    public string error_message { get; set; }
 }

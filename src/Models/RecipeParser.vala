@@ -240,7 +240,6 @@ public class Souschef.RecipeParser : Object {
     }
 
     private Ingredient parse_ingredient (CMark.Node? root) throws ParsingError {
-        debug (root.render_xml (CMark.OPT.DEFAULT));
         string? link = null;
         Amount? amount = null;
         var name_builder = new StringBuilder ();

@@ -23,6 +23,7 @@ public class Souschef.Application : Gtk.Application {
         setup_localization ();
         add_icon_resources ();
         foce_elementary_style ();
+        load_custom_app_style ();
         link_dark_mode_settings ();
         db_service.init.begin ();
     }
@@ -58,6 +59,17 @@ public class Souschef.Application : Gtk.Application {
         if (settings.gtk_icon_theme_name != "elementary") {
             settings.gtk_icon_theme_name = "elementary";
         }
+    }
+
+    private void load_custom_app_style () {
+        var provider = new Gtk.CssProvider ();
+        var resource_path = "/" + Consts.RESOURCE_BASE + "/Application.css";
+        provider.load_from_resource (resource_path);
+        Gtk.StyleContext.add_provider_for_display (
+            Gdk.Display.get_default (),
+            provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        );
     }
 
     private void link_dark_mode_settings () {

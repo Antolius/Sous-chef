@@ -8,7 +8,7 @@ public class Souschef.RecipeView : Gtk.Widget {
     public RecipesService recipes_service { private get; construct; }
 
     private Gtk.WindowHandle header;
-    private Gtk.ScrolledWindow scrolled_recipe_text;
+    private Gtk.ScrolledWindow scrolled_content;
 
     public RecipeView (RecipesService recipes_service) {
         Object (
@@ -22,10 +22,10 @@ public class Souschef.RecipeView : Gtk.Widget {
 
         header = create_header ();
         header.insert_after (this, null);
-        scrolled_recipe_text = new Gtk.ScrolledWindow () {
-            child = create_recipe_text (),
+        scrolled_content = new Gtk.ScrolledWindow () {
+            child = create_recipe_content (),
         };
-        scrolled_recipe_text.insert_after (this, header);
+        scrolled_content.insert_after (this, header);
     }
 
     private Gtk.WindowHandle create_header () {
@@ -54,41 +54,109 @@ public class Souschef.RecipeView : Gtk.Widget {
         };
     }
 
-    private Gtk.TextView create_recipe_text () {
-        var recipe_text = new Gtk.TextView () {
-            hexpand = true,
-            vexpand = true,
+    private Gtk.Widget create_recipe_content () {
+        var content = new Gtk.Box (Gtk.Orientation.VERTICAL, 8) {
             margin_start = 16,
+            margin_top = 16,
             margin_end = 16,
+            vexpand = true,
         };
+
         recipes_service.notify["currently-open"].connect (() => {
-            var instructions = recipes_service?.currently_open?.instructions ?? "";
-            var final_txt = "";
-            CMark.Node node = CMark.Node.parse_document(instructions.data, CMark.OPT.DEFAULT);
-            CMark.Iter iter = new CMark.Iter(node);
-            CMark.EVENT evt;
-            while ((evt  = iter.next()) != CMark.EVENT.DONE) {
-                unowned CMark.Node? cnode = iter.get_node();
-
-                if (evt == CMark.EVENT.EXIT) {
-                    final_txt += "</%s>\n".printf(cnode.get_type_string());
-                }
-
-                if (evt == CMark.EVENT.ENTER) {
-                    final_txt += "<%s>\n".printf(cnode.get_type_string());
-                    if (cnode.get_literal() != null) {
-                        final_txt += "%s\n".printf(cnode.get_literal());
-                    }
-                }
-            }
-            recipe_text.buffer.text = final_txt;
+            var recipe = recipes_service?.currently_open;
+            render (content, recipe);
         });
-        return recipe_text;
+
+        return content;
+    }
+
+    private void render (Gtk.Box container, Recipe? recipe) {
+        clean_up (container);
+        if (recipe == null) {
+            return;
+        }
+
+        if (recipe.tags != null && !recipe.tags.is_empty) {
+            container.append (create_tags_row (recipe.tags));
+        }
+
+        if (recipe.description != null) {
+            container.append (create_description (recipe.description));
+        }
+
+        if (recipe.yields != null && !recipe.yields.is_empty) {
+            container.append (create_yields (recipe.yields));
+        }
+    }
+
+    private void clean_up (Gtk.Box container) {
+        var row = container.get_first_child ();
+        while (row != null) {
+            var next = row.get_next_sibling ();
+            container.remove (row);
+            row = next;
+        }
+    }
+
+    private Gtk.Widget create_description (string description) {
+        var desc_view = new Gtk.TextView () {
+            hexpand = true,
+            editable = false,
+            cursor_visible = false,
+            wrap_mode = Gtk.WrapMode.WORD_CHAR,
+        };
+        desc_view.buffer.set_text (description + "\n");
+        return desc_view;
+    }
+
+    private Gtk.Widget create_tags_row (Gee.List<string> tags) {
+        var tags_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 16) {
+            margin_bottom = 8,
+        };
+
+        foreach (var tag in tags) {
+            if (tag.length == 0) {
+                continue;
+            }
+
+            var tag_view = new Gtk.Label (tag);
+            tag_view.add_css_class (Granite.STYLE_CLASS_CARD);
+            tag_view.add_css_class (Granite.STYLE_CLASS_ROUNDED);
+            tag_view.add_css_class ("souschef-tag");
+            tags_row.append (tag_view);
+        }
+        return tags_row;
+    }
+
+    private Gtk.Widget create_yields (Gee.List<Amount> yields) {
+        var yields_view = new Gtk.TextView () {
+            hexpand = true,
+            editable = false,
+            cursor_visible = false,
+            wrap_mode = Gtk.WrapMode.WORD_CHAR,
+        };
+
+        var sb = new StringBuilder (_("Yields: "));
+        for (var i = 0; i < yields.size; i++) {
+            if (i > 0) {
+                sb.append (", ");
+            }
+            var yld = yields[i];
+            sb.append ("%g".printf (yld.value));
+            if (yld.unit != null) {
+                sb.append (" ");
+                sb.append (yld.unit?.symbol ?? yld.unit?.name);
+            }
+        }
+
+        sb.append ("\n");
+        yields_view.buffer.set_text (sb.str);
+        return yields_view;
     }
 
     public override void dispose () {
         header.unparent ();
-        scrolled_recipe_text.unparent ();
+        scrolled_content.unparent ();
     }
 
 }

@@ -8,5 +8,6 @@ public errordomain Souschef.ServiceError {
     UNEXPECTED_ERROR,
     FAILED_TO_CREATE_DATABASE_FILE,
     FAILED_TO_INIT_DATABASE,
-    FAILED_QUERY
+    FAILED_QUERY,
+    INVALID_DATA
 }

@@ -3,7 +3,7 @@
   <gresource prefix="/hr/from/josipantolis/souschef">
 
     <!--Stylesheet-->
-    <file compressed="true">style.css</file>
+    <file compressed="true">Application.css</file>
 
     <!--SQL-->
     <file compressed="true">sql/01_create_tables.sql</file>
