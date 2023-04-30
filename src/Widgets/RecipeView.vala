@@ -29,15 +29,20 @@ public class Souschef.RecipeView : Gtk.Widget {
     }
 
     private Gtk.WindowHandle create_header () {
-        var end_window_controls = new Gtk.WindowControls (Gtk.PackType.END);
+        var end_window_controls = new Gtk.WindowControls (Gtk.PackType.END) {
+            valign = Gtk.Align.START,
+        };
 
-        var title = new Granite.HeaderLabel ("") {
+        var title = new Gtk.Label ("") {
             hexpand = true,
-            halign = Gtk.Align.CENTER,
+            ellipsize = Pango.EllipsizeMode.END,
+            halign = Gtk.Align.START,
             valign = Gtk.Align.BASELINE,
+            margin_start = 16,
             margin_top = 9,
             margin_bottom = 9,
         };
+        title.add_css_class (Granite.STYLE_CLASS_H1_LABEL);
         recipes_service.notify["currently-open"].connect (() => {
             title.label = recipes_service.currently_open?.title ?? "";
         });
@@ -80,13 +85,18 @@ public class Souschef.RecipeView : Gtk.Widget {
             container.append (create_tags_row (recipe.tags));
         }
 
-        if (recipe.description != null) {
+        if (recipe.description != null && recipe.description.length > 0) {
             container.append (create_description (recipe.description));
         }
 
         if (recipe.yields != null && !recipe.yields.is_empty) {
             container.append (create_yields (recipe.yields));
         }
+
+        if (recipe.ingredient_groups != null && !recipe.ingredient_groups.is_empty) {
+            container.append (create_ingredient_groups (recipe.ingredient_groups));
+        }
+
     }
 
     private void clean_up (Gtk.Box container) {
@@ -94,6 +104,7 @@ public class Souschef.RecipeView : Gtk.Widget {
         while (row != null) {
             var next = row.get_next_sibling ();
             container.remove (row);
+            row.unparent ();
             row = next;
         }
     }
@@ -130,13 +141,12 @@ public class Souschef.RecipeView : Gtk.Widget {
 
     private Gtk.Widget create_yields (Gee.List<Amount> yields) {
         var yields_view = new Gtk.TextView () {
-            hexpand = true,
             editable = false,
             cursor_visible = false,
             wrap_mode = Gtk.WrapMode.WORD_CHAR,
         };
 
-        var sb = new StringBuilder (_("Yields: "));
+        var sb = new StringBuilder (_("Yields "));
         for (var i = 0; i < yields.size; i++) {
             if (i > 0) {
                 sb.append (", ");
@@ -152,6 +162,82 @@ public class Souschef.RecipeView : Gtk.Widget {
         sb.append ("\n");
         yields_view.buffer.set_text (sb.str);
         return yields_view;
+    }
+
+    private Gtk.Widget create_ingredient_groups (
+        Gee.List<IngredientGroup> ingredient_groups
+    ) {
+        var groups = new Gtk.Box (Gtk.Orientation.VERTICAL, 16);
+        var is_first = true;
+        foreach (var group in ingredient_groups) {
+            string? title = null;
+            if (group.title != null && group.title.length > 0) {
+                title = group.title;
+
+            } else if (is_first) {
+                title = _("Ingredients");
+            }
+            is_first = false;
+
+            if (title != null) {
+                var title_label = new Gtk.Label (title) {
+                    halign = Gtk.Align.START,
+                    wrap = true,
+                };
+                title_label.add_css_class (Granite.STYLE_CLASS_H3_LABEL);
+                groups.append (title_label);
+            }
+
+            groups.append (create_ingredients (group.ingredients));
+        }
+        return groups;
+    }
+
+    private Gtk.Widget create_ingredients (
+        Gee.List<Ingredient> ingredients
+    ) {
+        var list = new Gtk.ListBox () {
+            selection_mode = Gtk.SelectionMode.NONE,
+        };
+
+        var store = convert_to_store (ingredients);
+        list.bind_model (store, (element) => {
+            var ingredient = (Ingredient) element;
+            var unit_name = "";
+
+            if (ingredient.amount != null) {
+                var unit = ingredient.amount.unit;
+                if (unit != null) {
+                    if (unit.symbol != null) {
+                        unit_name = _("%s of").printf (unit.symbol);
+                    } else {
+                        unit_name = _(" %s of").printf (unit.name);
+                    }
+                }
+            }
+
+            var txt = "• %g%s %s".printf (
+                ingredient.amount?.value ?? 1.0,
+                unit_name,
+                ingredient.name
+            );
+
+            return new Gtk.Label (txt) {
+                halign = Gtk.Align.START,
+                selectable = true,
+                wrap = true,
+            };
+        });
+
+        return list;
+    }
+
+    private ListStore convert_to_store (Gee.List<Ingredient> source) {
+        var store = new ListStore (typeof (Ingredient));
+        foreach (var ingredient in source) {
+            store.append (ingredient);
+        }
+        return store;
     }
 
     public override void dispose () {

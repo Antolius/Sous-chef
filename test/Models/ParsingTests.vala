@@ -83,12 +83,14 @@ It can have multiple lines an may even include pictures.
         assert_nonnull (groups);
         assert_cmpint (groups.size, CompareOperator.EQ, 4);
 
-        var group = groups[""];
+        var group = groups[0];
         assert_nonnull (group);
-        assert_cmpint (group.size, CompareOperator.EQ, 2);
+        assert_null (group.title);
+        assert_nonnull (group.ingredients);
+        assert_cmpint (group.ingredients.size, CompareOperator.EQ, 2);
 
         // - *5* ungrouped ingredient
-        var ing = group[0];
+        var ing = group.ingredients[0];
         assert_nonnull (ing);
         assert_nonnull (ing.amount);
         assert_cmpfloat (ing.amount.value, CompareOperator.EQ, 5.0);
@@ -96,7 +98,7 @@ It can have multiple lines an may even include pictures.
         assert_cmpstr (ing.name, CompareOperator.EQ, "ungrouped ingredient");
 
         // - *5.2 ml* grouped ingredient
-        ing = group[1];
+        ing = group.ingredients[1];
         assert_nonnull (ing);
         assert_nonnull (ing.amount);
         assert_cmpfloat (ing.amount.value, CompareOperator.EQ, 5.2);
@@ -104,12 +106,15 @@ It can have multiple lines an may even include pictures.
         assert_cmpstr (ing.amount.unit.name, CompareOperator.EQ, "ml");
         assert_cmpstr (ing.name, CompareOperator.EQ, "grouped ingredient");
 
-        group = groups["Group 1"];
+        group = groups[1];
         assert_nonnull (group);
-        assert_cmpint (group.size, CompareOperator.EQ, 2);
+        assert_nonnull (group.title);
+        assert_cmpstr (group.title, CompareOperator.EQ, "Group 1");
+        assert_nonnull (group.ingredients);
+        assert_cmpint (group.ingredients.size, CompareOperator.EQ, 2);
 
         // - *1 ⅕* [link ingredient](./ingredients.md)
-        ing = group[0];
+        ing = group.ingredients[0];
         assert_nonnull (ing);
         assert_nonnull (ing.amount);
         assert_cmpfloat (ing.amount.value, CompareOperator.EQ, 1.2);
@@ -118,17 +123,20 @@ It can have multiple lines an may even include pictures.
         assert_cmpstr (ing.link, CompareOperator.EQ, "./ingredients.md");
 
         // - unit is optional
-        ing = group[1];
+        ing = group.ingredients[1];
         assert_nonnull (ing);
         assert_null (ing.amount);
         assert_cmpstr (ing.name, CompareOperator.EQ, "unit is optional");
 
-        group = groups["Subgroup 1.1"];
+        group = groups[2];
         assert_nonnull (group);
-        assert_cmpint (group.size, CompareOperator.EQ, 1);
+        assert_nonnull (group.title);
+        assert_cmpstr (group.title, CompareOperator.EQ, "Subgroup 1.1");
+        assert_nonnull (group.ingredients);
+        assert_cmpint (group.ingredients.size, CompareOperator.EQ, 1);
 
         // - *1.25 ml* ingredient
-        ing = group[0];
+        ing = group.ingredients[0];
         assert_nonnull (ing);
         assert_nonnull (ing.amount);
         assert_cmpfloat (ing.amount.value, CompareOperator.EQ, 1.25);
@@ -136,18 +144,21 @@ It can have multiple lines an may even include pictures.
         assert_cmpstr (ing.amount.unit.name, CompareOperator.EQ, "ml");
         assert_cmpstr (ing.name, CompareOperator.EQ, "ingredient");
 
-        group = groups["Group 2"];
+        group = groups[3];
         assert_nonnull (group);
-        assert_cmpint (group.size, CompareOperator.EQ, 2);
+        assert_nonnull (group.title);
+        assert_cmpstr (group.title, CompareOperator.EQ, "Group 2");
+        assert_nonnull (group.ingredients);
+        assert_cmpint (group.ingredients.size, CompareOperator.EQ, 2);
 
         // - text isn't optional
-        ing = group[0];
+        ing = group.ingredients[0];
         assert_nonnull (ing);
         assert_null (ing.amount);
         assert_cmpstr (ing.name, CompareOperator.EQ, "text isn't optional");
 
         // - *hey* amount is valid without factor
-        ing = group[1];
+        ing = group.ingredients[1];
         assert_nonnull (ing);
         assert_nonnull (ing.amount);
         assert_nonnull (ing.amount.unit);

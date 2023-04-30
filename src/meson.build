@@ -18,6 +18,7 @@ common_sources = files(
     'Models/Amount.vala',
     'Models/AmountParser.vala',
     'Models/Ingredient.vala',
+    'Models/IngredientGroup.vala',
     'Models/ParsingError.vala',
     'Models/Recipe.vala',
     'Models/RecipeParser.vala',

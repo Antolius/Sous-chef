@@ -24,7 +24,7 @@ public class Souschef.RecipeParser : Object {
         Gee.List<Amount> yields;
         parse_tags_and_yields (out tags, out yields);
         require_horizontal_line ();
-        var ingredients = parse_ingredient_groups ();
+        var ingredient_groups = parse_ingredient_groups ();
         require_horizontal_line ();
         var instructions = parse_instructions ();
 
@@ -34,7 +34,7 @@ public class Souschef.RecipeParser : Object {
             description = description,
             tags = tags,
             yields = yields,
-            ingredient_groups = ingredients,
+            ingredient_groups = ingredient_groups,
             instructions = instructions,
         };
     }
@@ -195,20 +195,25 @@ public class Souschef.RecipeParser : Object {
         }
     }
 
-    private Gee.Map<string, Gee.List<Ingredient>> parse_ingredient_groups ()
+    private Gee.List<IngredientGroup> parse_ingredient_groups ()
         throws ParsingError {
-        var groups = new Gee.HashMap<string, Gee.List<Ingredient>> ();
+        var groups = new Gee.ArrayList<IngredientGroup> ();
         unowned var node = _blocks.peek ();
-        var group_name = "";
+        var current_group = new IngredientGroup () {
+            ingredients = new Gee.ArrayList<Ingredient> (),
+        };
+
         while (node != null && !is_horizontal_line (node)) {
             switch (node.get_type ()) {
                 case CMark.NODE_TYPE.HEADING:
-                    group_name = serialize_inline (node);
+                    current_group.title = serialize_inline (node);
                     break;
                 case CMark.NODE_TYPE.LIST:
-                    var ingredients = parse_ingredients (node);
-                    groups[group_name] = ingredients;
-                    group_name = "";
+                    current_group.ingredients = parse_ingredients (node);
+                    groups.add (current_group);
+                    current_group = new IngredientGroup () {
+                        ingredients = new Gee.ArrayList<Ingredient> (),
+                    };
                     break;
                 default:
                     var msg_tmpl = "Expected ingredients to be list with titles, but got %s";

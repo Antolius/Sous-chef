@@ -39,7 +39,7 @@ public class Souschef.MainWindow : Gtk.ApplicationWindow {
             shrink_start_child = false,
             end_child = end,
             resize_end_child = true,
-            shrink_end_child = true
+            shrink_end_child = false,
         };
 
         var settings = new Settings (Consts.PROJECT_NAME);

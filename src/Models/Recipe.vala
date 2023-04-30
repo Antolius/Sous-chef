@@ -10,7 +10,7 @@ public class Souschef.Recipe : Object {
     public string? description { get; set; }
     public Gee.List<string> tags { get; set; }
     public Gee.List<Amount> @yields { get; set; }
-    public Gee.Map<string, Gee.List<Ingredient>> ingredient_groups { get; set; }
+    public Gee.List<IngredientGroup> ingredient_groups { get; set; }
     public string? instructions { get; set; }
 
 }
