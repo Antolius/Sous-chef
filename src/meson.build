@@ -27,8 +27,9 @@ common_sources = files(
     'Services/DatabaseService.vala',
     'Services/RecipesService.vala',
     'Services/ServiceError.vala',
-    'Widgets/LibraryView.vala',
-    'Widgets/RecipeView.vala',
+    'Views/LibraryView.vala',
+    'Views/RecipeView.vala',
+    'Widgets/EditableTitle.vala',
 )
 common_sources += const_src
 

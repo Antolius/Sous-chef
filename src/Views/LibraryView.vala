@@ -34,7 +34,6 @@ public class Souschef.LibraryView : Gtk.Widget {
     }
 
     construct {
-        // add_css_class (Granite.STYLE_CLASS_VIEW);
         add_css_class (Granite.STYLE_CLASS_SIDEBAR);
 
         header = create_header ();
@@ -54,6 +53,8 @@ public class Souschef.LibraryView : Gtk.Widget {
     private Gtk.WindowHandle create_header () {
         var window_controls = new Gtk.WindowControls (Gtk.PackType.START) {
             valign = Gtk.Align.START,
+            margin_start = 3,
+            margin_top = 3,
         };
 
         var search_entry = new Gtk.SearchEntry () {
@@ -76,6 +77,8 @@ public class Souschef.LibraryView : Gtk.Widget {
         var add_recipe_button = new Gtk.Button.from_icon_name ("list-add") {
             valign = Gtk.Align.START,
             tooltip_text = _("Craft a new recipe"),
+            margin_end = 3,
+            margin_top = 3,
         };
 
         var header = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);

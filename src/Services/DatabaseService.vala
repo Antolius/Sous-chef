@@ -30,6 +30,7 @@ public class Souschef.DatabaseService : Object {
             _db_promise = new Gee.Promise<weak Sqlite.Database> ();
         }
         try {
+            debug ("Loading DB file from %s", _db_file_path);
             var exists = yield db_file_exists (cancel);
             if (!exists) {
                 yield create_empty_db_file (cancel);

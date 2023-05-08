@@ -57,7 +57,7 @@ To install, use `ninja install`, then execute with `hr.from.josipantolis.sousche
 
 ```sh
 ninja install
-hr.from.josipantolis.souschef
+G_MESSAGES_DEBUG=all ./hr.from.josipantolis.souschef
 ```
 
 To run tests, use `ninja test`.

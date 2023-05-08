@@ -31,21 +31,21 @@ public class Souschef.RecipeView : Gtk.Widget {
     private Gtk.WindowHandle create_header () {
         var end_window_controls = new Gtk.WindowControls (Gtk.PackType.END) {
             valign = Gtk.Align.START,
+            margin_end = 3,
+            margin_top = 3,
         };
 
-        var title = new Gtk.Label ("") {
-            hexpand = true,
-            ellipsize = Pango.EllipsizeMode.END,
+        var title = new EditableTitle () {
             halign = Gtk.Align.START,
             valign = Gtk.Align.BASELINE,
             margin_start = 16,
             margin_top = 9,
             margin_bottom = 9,
         };
-        title.add_css_class (Granite.STYLE_CLASS_H1_LABEL);
         recipes_service.notify["currently-open"].connect (() => {
-            title.label = recipes_service.currently_open?.title ?? "";
+            title.text = recipes_service.currently_open?.title ?? "";
         });
+        title.add_css_class (Granite.STYLE_CLASS_H1_LABEL);
 
         var header = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
         header.add_css_class ("titlebar");
