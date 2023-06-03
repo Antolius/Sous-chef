@@ -69,14 +69,14 @@ public class Souschef.RecipeView : Gtk.Widget {
 
         recipes_service.notify["currently-open"].connect (() => {
             var recipe = recipes_service?.currently_open;
-            render (content, recipe);
+            fill_content (content, recipe);
         });
 
         return content;
     }
 
-    private void render (Gtk.Box container, Recipe? recipe) {
-        clean_up (container);
+    private void fill_content (Gtk.Box container, Recipe? recipe) {
+        clear (container);
         if (recipe == null) {
             return;
         }
@@ -99,7 +99,7 @@ public class Souschef.RecipeView : Gtk.Widget {
 
     }
 
-    private void clean_up (Gtk.Box container) {
+    private void clear (Gtk.Box container) {
         var row = container.get_first_child ();
         while (row != null) {
             var next = row.get_next_sibling ();
@@ -121,7 +121,8 @@ public class Souschef.RecipeView : Gtk.Widget {
     }
 
     private Gtk.Widget create_tags_row (Gee.List<string> tags) {
-        var tags_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 16) {
+        var tags_row = new Gtk.FlowBox () {
+            column_spacing = 16,
             margin_bottom = 8,
         };
 
@@ -130,11 +131,11 @@ public class Souschef.RecipeView : Gtk.Widget {
                 continue;
             }
 
-            var tag_view = new Gtk.Label (tag);
-            tag_view.add_css_class (Granite.STYLE_CLASS_CARD);
-            tag_view.add_css_class (Granite.STYLE_CLASS_ROUNDED);
-            tag_view.add_css_class ("souschef-tag");
-            tags_row.append (tag_view);
+            var tag_pill = new TagPill (tag);
+            tag_pill.on_removed.connect (() => {
+                tag_pill.unparent ();
+            });
+            tags_row.append (tag_pill);
         }
         return tags_row;
     }
