@@ -82,7 +82,7 @@ public class Souschef.RecipeView : Gtk.Widget {
         }
 
         if (recipe.tags != null && !recipe.tags.is_empty) {
-            container.append (create_tags_row (recipe.tags));
+            container.append (new TagsRow (recipe.tags));
         }
 
         if (recipe.description != null && recipe.description.length > 0) {
@@ -118,26 +118,6 @@ public class Souschef.RecipeView : Gtk.Widget {
         };
         desc_view.buffer.set_text (description + "\n");
         return desc_view;
-    }
-
-    private Gtk.Widget create_tags_row (Gee.List<string> tags) {
-        var tags_row = new Gtk.FlowBox () {
-            column_spacing = 16,
-            margin_bottom = 8,
-        };
-
-        foreach (var tag in tags) {
-            if (tag.length == 0) {
-                continue;
-            }
-
-            var tag_pill = new TagPill (tag);
-            tag_pill.on_removed.connect (() => {
-                tag_pill.unparent ();
-            });
-            tags_row.append (tag_pill);
-        }
-        return tags_row;
     }
 
     private Gtk.Widget create_yields (Gee.List<Amount> yields) {

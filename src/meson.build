@@ -31,6 +31,7 @@ common_sources = files(
     'Views/RecipeView.vala',
     'Widgets/EditableTitle.vala',
     'Widgets/TagPill.vala',
+    'Widgets/TagsRow.vala',
 )
 common_sources += const_src
 

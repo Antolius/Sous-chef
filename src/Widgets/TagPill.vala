@@ -37,7 +37,7 @@ public class Souschef.TagPill : Gtk.Widget {
 
         var button = new Gtk.Button.from_icon_name ("application-exit-symbolic") {
             can_focus = false,
-            tooltip_text = _("Remove tag"),
+            tooltip_text = _("Remove Tag"),
         };
         button.clicked.connect (() => on_removed ());
 
