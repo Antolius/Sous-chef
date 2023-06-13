@@ -24,6 +24,7 @@ common_sources = files(
     'Models/RecipeParser.vala',
     'Models/Tag.vala',
     'Models/Unit.vala',
+    'Models/Units.vala',
     'Services/DatabaseService.vala',
     'Services/RecipesService.vala',
     'Services/ServiceError.vala',
