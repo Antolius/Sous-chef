@@ -7,6 +7,7 @@ namespace Souschef {
     public static void main (string[] args) {
         Test.init (ref args);
         ParsingTests.add_funcs ();
+        ConversionTests.add_funcs ();
         Test.run ();
     }
 }
