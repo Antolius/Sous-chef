@@ -7,14 +7,22 @@ public class Souschef.Application : Gtk.Application {
 
     public DatabaseService db_service { get; construct; }
     public RecipesService recipes_service { get; construct; }
+    public ConverterService converter_service { get; construct; }
 
     public Application () {
-      var db_service = new DatabaseService ();
+        var db_service = new DatabaseService ();
+        var recipes_service = new RecipesService (db_service);
+        var converter_service = new ConverterService (
+            db_service,
+            recipes_service
+        );
+
         Object (
             application_id: Consts.PROJECT_NAME,
             flags: ApplicationFlags.FLAGS_NONE,
             db_service: db_service,
-            recipes_service: new RecipesService (db_service)
+            recipes_service: recipes_service,
+            converter_service: converter_service
         );
     }
 

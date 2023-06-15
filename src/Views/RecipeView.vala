@@ -6,19 +6,26 @@
 public class Souschef.RecipeView : Gtk.Widget {
 
     public RecipesService recipes_service { private get; construct; }
+    public ConverterService converter_service { private get; construct; }
 
-    private Gtk.WindowHandle header;
+    private Gtk.Widget header;
     private Gtk.ScrolledWindow scrolled_content;
 
-    public RecipeView (RecipesService recipes_service) {
+    public RecipeView (
+        RecipesService recipes_service,
+        ConverterService converter_service
+    ) {
         Object (
             layout_manager: new Gtk.BoxLayout (Gtk.Orientation.VERTICAL),
-            recipes_service: recipes_service
+            recipes_service: recipes_service,
+            converter_service: converter_service
         );
     }
 
     construct {
         add_css_class (Granite.STYLE_CLASS_VIEW);
+
+        setup_actions ();
 
         header = create_header ();
         header.insert_after (this, null);
@@ -28,35 +35,54 @@ public class Souschef.RecipeView : Gtk.Widget {
         scrolled_content.insert_after (this, header);
     }
 
-    private Gtk.WindowHandle create_header () {
-        var end_window_controls = new Gtk.WindowControls (Gtk.PackType.END) {
-            valign = Gtk.Align.START,
-            margin_end = 3,
-            margin_top = 3,
-        };
-
-        var title = new EditableTitle () {
-            halign = Gtk.Align.START,
-            valign = Gtk.Align.BASELINE,
-            margin_start = 16,
-            margin_top = 9,
-            margin_bottom = 9,
-        };
-        recipes_service.notify["currently-open"].connect (() => {
-            title.text = recipes_service.currently_open?.title ?? "";
+    private void setup_actions () {
+        var change_unit_system_action = new SimpleAction.stateful (
+            "change-unit-system",
+            new VariantType ("s"),
+            new Variant.string ("original")
+        );
+        change_unit_system_action.notify["state"].connect (() => {
+            var preferred_system = change_unit_system_action.state.get_string ();
+            PreferredUnitSystem system;
+            switch (preferred_system) {
+                case "metric":
+                    system = PreferredUnitSystem.METRIC;
+                    break;
+                case "imperial":
+                    system = PreferredUnitSystem.IMPERIAL;
+                    break;
+                default:
+                    system = PreferredUnitSystem.ORIGINAL;
+                    break;
+            }
+            converter_service.preferred_unit_system = system;
         });
-        title.add_css_class (Granite.STYLE_CLASS_H1_LABEL);
 
-        var header = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-        header.add_css_class ("titlebar");
-        header.add_css_class (Granite.STYLE_CLASS_FLAT);
-        header.add_css_class (Granite.STYLE_CLASS_DEFAULT_DECORATION);
-        header.append (title);
-        header.append (end_window_controls);
+        var change_yield_action = new SimpleAction.stateful (
+            "change-yield",
+            new VariantType ("d"),
+            new Variant.double (1.0)
+        );
+        change_yield_action.notify["state"].connect (() => {
+            var factor = change_yield_action.state.get_double ();
+            converter_service.yield_factor = factor;
+        });
 
-        return new Gtk.WindowHandle () {
-            child = header
-        };
+        var group = new SimpleActionGroup ();
+        group.add_action (change_unit_system_action);
+        group.add_action (change_yield_action);
+        insert_action_group ("recipe", group);
+    }
+
+    private Gtk.Widget create_header () {
+        var header = new RecipeHeader ();
+        recipes_service.bind_property (
+            "currently-open",
+            header,
+            "recipe",
+            BindingFlags.SYNC_CREATE
+        );
+        return header;
     }
 
     private Gtk.Widget create_recipe_content () {

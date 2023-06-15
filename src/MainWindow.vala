@@ -19,7 +19,10 @@ public class Souschef.MainWindow : Gtk.ApplicationWindow {
         hide_default_titlebar ();
 
         var library = new LibraryView (sous_chef_app.recipes_service);
-        var recipe = new RecipeView (sous_chef_app.recipes_service);
+        var recipe = new RecipeView (
+            sous_chef_app.recipes_service,
+            sous_chef_app.converter_service
+        );
         child = create_paned_for (library, recipe);
 
         bind_window_state_to_settings ();

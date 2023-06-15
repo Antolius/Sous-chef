@@ -20,6 +20,14 @@ public class Souschef.Unit : Object {
         return value_in_referent_unit / ratio_to_referent_unit;
     }
 
+    public string to_string () {
+        if (symbol != null) {
+            return symbol;
+        }
+
+        return name;
+    }
+
 }
 
 public enum Souschef.UnitKind {

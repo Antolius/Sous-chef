@@ -8,14 +8,14 @@ public class Souschef.Amount : Object {
     public double @value { get; set; }
     public Unit? unit { get; set; }
 
-    public Amount to_referent_unit () {
-        if (unit != null && unit.referent_unit != null) {
+    public Amount? to_referent_unit () {
+        if (unit != null) {
             return new Amount () {
                 value = unit.to_referent_unit (this.value),
-                unit = unit.referent_unit,
+                unit = unit.referent_unit ?? unit,
             };
         } else {
-            return this;
+            return null;
         }
     }
 
@@ -56,5 +56,15 @@ public class Souschef.Amount : Object {
         }
 
         return null;
+    }
+
+    public string to_string () {
+        // TODO: implement fractions etc.
+        var val_str = value.to_string ();
+        if (unit != null) {
+            return "%s %s".printf (val_str, unit.to_string ());
+        } else {
+            return val_str;
+        }
     }
 }
