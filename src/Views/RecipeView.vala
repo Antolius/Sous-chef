@@ -203,36 +203,30 @@ public class Souschef.RecipeView : Gtk.Widget {
     private Gtk.Widget create_ingredients (
         Gee.List<Ingredient> ingredients
     ) {
-        var list = new Gtk.ListBox () {
-            selection_mode = Gtk.SelectionMode.NONE,
-        };
+        var list = new Gtk.ListBox ();
+        list.add_css_class ("souschef-unselectable-children");
 
         var store = convert_to_store (ingredients);
         list.bind_model (store, (element) => {
             var ingredient = (Ingredient) element;
-            var unit_name = "";
 
-            if (ingredient.amount != null) {
-                var unit = ingredient.amount.unit;
-                if (unit != null) {
-                    if (unit.symbol != null) {
-                        unit_name = _("%s of").printf (unit.symbol);
-                    } else {
-                        unit_name = _(" %s of").printf (unit.name);
-                    }
-                }
-            }
+            var row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 4) {
+                margin_bottom = 8,
+            };
 
-            var txt = "• %g%s %s".printf (
-                ingredient.amount?.value ?? 1.0,
-                unit_name,
-                ingredient.name
-            );
+            row.append (new Gtk.CheckButton () {
+                valign = Gtk.Align.BASELINE,
+            });
 
-            return new Gtk.Label (txt) {
-                halign = Gtk.Align.START,
-                selectable = true,
-                wrap = true,
+            row.append (new EditableIngredient (
+                converter_service,
+                ingredient
+            ));
+
+            return new Gtk.ListBoxRow () {
+                activatable = false,
+                selectable = false,
+                child = row,
             };
         });
 

@@ -14,4 +14,7 @@ public interface Souschef.AmountConverter : Object {
     // Return converted amount or starting_amount if it cannot be converted
     public abstract Amount convert_if_you_can (Amount starting_amount);
 
+    // Return an inverse converters if it exists, null otherwise
+    public abstract AmountConverter? inverse ();
+
 }

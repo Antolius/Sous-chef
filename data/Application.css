@@ -10,3 +10,17 @@
             alpha(@accent_color_500, 0.1)
         );
 }
+
+:focus .souschef-tag {
+    background-image:
+        linear-gradient(
+            to bottom,
+            alpha(@accent_color_300, 0.3),
+            alpha(@accent_color_500, 0.3)
+        );
+}
+
+.souschef-unselectable-children row:focus,
+.souschef-unselectable-children flowboxchild:focus {
+    background: @bg-color;
+}

@@ -35,6 +35,7 @@ executable(
     gresources, # from data/meson.build
     dependencies: dependencies,
     install: true,
+    link_args : '-lm',
 )
 
 gnome.post_install(
@@ -47,6 +48,7 @@ test_executable = executable(
     meson.project_name () + '-tests',
     common_sources + test_sources,
     dependencies: dependencies,
+    link_args : '-lm',
 )
 
 test('tests', test_executable)

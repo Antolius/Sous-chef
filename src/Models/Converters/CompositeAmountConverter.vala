@@ -28,4 +28,17 @@ public class Souschef.CompositeAmountConverter : AmountConverter, Object {
         return convert (starting_amount) ?? starting_amount;
     }
 
+    public AmountConverter? inverse () {
+        var reverse_delegates = new Gee.ArrayList<AmountConverter> ();
+        for (var i = delegates.size - 1; i >= 0; --i) {
+            var inverse_delegate = delegates[i].inverse ();
+            if (inverse_delegate == null) {
+                return null;
+            }
+
+            reverse_delegates.add (inverse_delegate);
+        }
+        return new CompositeAmountConverter (reverse_delegates);
+    }
+
 }

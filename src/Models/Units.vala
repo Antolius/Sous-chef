@@ -5,6 +5,10 @@
 
 public class Souschef.Units {
 
+    public static Unit NONE = new Unit () {
+        name = "",
+    };
+
 // Time units
 
     public static Unit SECOND = new Unit () {
@@ -638,7 +642,6 @@ public class Souschef.Units {
 
 // Collection of known units
     public static Gee.List<Unit> ALL = new Gee.ArrayList<Unit>.wrap ({
-        SECOND, MINUTE, HOUR, DAY,
         GRAM, DECIGRAM, CENTIGRAM, MILLIGRAM, DEKAGRAM, HECTOGRAM, KILOGRAM,
         HUNDERWEIGHT, QUARTER, STONE, POUND, OUNCE, DRAM, GRAIN,
         PICUL, CATTY, TAEL, MACE, CANDAREEN, CASH,
@@ -649,6 +652,7 @@ public class Souschef.Units {
         CUBIC_METER, CUBIC_DECIMETER, CUBIC_CENTIMETER, CUBIC_MILLIMETER,
         DROP, SMIDGEN, PINCH, DASH, SALTSPOON, SCRUPLE, COFFEESPOON, FLUID_DRAM, TEASPOON, DESSERTSPOON, TABLESPOON, FLUID_OUNCE, WINEGLASS, GILL, TEACUP, CUP, PINT, QUART, GALLON,
         CELSIUS, KELVIN, FAHRENHEIT,
+        SECOND, MINUTE, HOUR, DAY,
     });
 
 }

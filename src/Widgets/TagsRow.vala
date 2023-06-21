@@ -29,6 +29,7 @@ public class Souschef.TagsRow : Gtk.Widget {
             column_spacing = 16,
             hexpand = true,
         };
+        flow_box.add_css_class ("souschef-unselectable-children");
 
         foreach (var tag in tags) {
             add_tag_pill (tag);

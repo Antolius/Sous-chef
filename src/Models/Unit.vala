@@ -20,6 +20,16 @@ public class Souschef.Unit : Object {
         return value_in_referent_unit / ratio_to_referent_unit;
     }
 
+    public bool equals (Unit? other) {
+        if (other == null) {
+            return false;
+        }
+
+        return kind == other.kind
+            && system == other.system
+            && name == other.name;
+    }
+
     public string to_string () {
         if (symbol != null) {
             return symbol;

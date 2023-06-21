@@ -47,8 +47,8 @@ public class Souschef.RecipeHeader : Gtk.Widget {
     }
 
 
-    private EditableTitle create_title () {
-        var title = new EditableTitle () {
+    private Gtk.Widget create_title () {
+        var title = new EditableLabel () {
             halign = Gtk.Align.START,
             valign = Gtk.Align.BASELINE,
             margin_start = 16,

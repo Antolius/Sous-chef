@@ -58,13 +58,74 @@ public class Souschef.Amount : Object {
         return null;
     }
 
+    public bool equals (Amount? other) {
+        if (other == null) {
+            return false;
+        }
+
+        if (value != other.value) {
+            return false;
+        }
+
+        if (unit != null) {
+            return unit.equals (other.unit);
+        }
+
+        return true;
+    }
+
     public string to_string () {
         // TODO: implement fractions etc.
-        var val_str = value.to_string ();
+        var val_str = "%g".printf (round(value));
         if (unit != null) {
             return "%s %s".printf (val_str, unit.to_string ());
         } else {
             return val_str;
         }
+    }
+
+    private double round (double original) {
+        if (original >= 15) {
+            return Math.round (original);
+        }
+
+        double int_part;
+        var frac_part = Math.modf (original, out int_part);
+        double[] supported_fractions = {
+            0.25,
+            0.5,
+            0.75,
+            1.0/7,
+            1.0/9,
+            0.1,
+            1.0/3,
+            2.0/3,
+            0.2,
+            0.4,
+            0.6,
+            0.8,
+            1.0/6,
+            5.0/6,
+            1.0/8,
+            3.0/8,
+            5.0/8,
+            7.0/8
+        };
+
+        foreach (var supported in supported_fractions) {
+            if (supported == frac_part) {
+                return original;
+            }
+        }
+
+        if (int_part >= 1.0) {
+            return int_part;
+        }
+
+        if (frac_part >= 0.5) {
+            return 1.0;
+        }
+
+        return frac_part;
     }
 }

@@ -26,4 +26,12 @@ public class Souschef.MultiplierBasedAmountConverter : AmountConverter, Object {
         return convert (starting_amount);
     }
 
+    public AmountConverter? inverse () {
+        if (multiplier == 0.0) {
+            return this;
+        }
+
+        return new MultiplierBasedAmountConverter (1.0 / multiplier);
+    }
+
 }

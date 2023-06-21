@@ -17,4 +17,8 @@ public class Souschef.IdentityAmountConverter : AmountConverter, Object {
         return starting_amount;
     }
 
+    public AmountConverter? inverse () {
+        return this;
+    }
+
 }

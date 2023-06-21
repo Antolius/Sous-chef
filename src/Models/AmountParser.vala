@@ -108,9 +108,7 @@ public class Souschef.AmountParser : Object {
                 if (matcher.match (cleaned_amount)) {
                     var val = matcher.get_value ();
                     var unit_name = matcher.get_unit_name ();
-                    var unit = unit_name != null ? new Unit () {
-                        name = unit_name,
-                    } : null;
+                    var unit = parse_unit (unit_name);
                     return new Amount () {
                         value = val,
                         unit = unit,
@@ -126,6 +124,83 @@ public class Souschef.AmountParser : Object {
 
         var err_msg = "Expected an amount, but got %s".printf (raw_amount);
         throw new ParsingError.INVALID (err_msg);
+    }
+
+    private Unit? parse_unit (string? raw_name) {
+        if (raw_name == null) {
+            return null;
+        }
+
+        var name = raw_name.strip ();
+        if (name.length == 0) {
+            return null;
+        }
+
+        var unit = find_existing_unit_by_name (name);
+        if (unit != null) {
+            return unit;
+        }
+
+        if (name.has_suffix ("s") && name != "s") {
+            var name_without_s = name.substring (0, name.length - 1);
+            unit = find_existing_unit_by_name (name_without_s);
+            if (unit != null) {
+                return unit;
+            }
+        }
+
+        if (name.has_suffix ("es") && name != "es") {
+            var name_without_es = name.substring (0, name.length - 2);
+            unit = find_existing_unit_by_name (name_without_es);
+            if (unit != null) {
+                return unit;
+            }
+        }
+
+        return new Unit () {
+            name = name,
+        };
+    }
+
+    private Unit? find_existing_unit_by_name (string name) {
+        var folded_name = name.casefold ();
+
+        var name_match = Units.ALL
+            .first_match (u => folded_name.collate (u.name.casefold ()) == 0);
+        if (name_match != null && name_match.name == name) {
+            return name_match;
+        }
+
+        var symbol_match = Units.ALL.filter (u => u.symbol != null)
+            .first_match (u => folded_name.collate (u.symbol.casefold ()) == 0);
+        if (symbol_match != null) {
+            return symbol_match;
+        }
+
+        if (name_match != null) {
+            return name_match;
+        }
+
+        var simple_name = simplify (name);
+
+        var simple_name_match = Units.ALL
+            .first_match (u => simple_name.collate (simplify (u.name)) == 0);
+        if (simple_name_match != null) {
+            return simple_name_match;
+        }
+
+        return null;
+    }
+
+    private string simplify (string starting) {
+        return starting.casefold ()
+            .replace (" ", "")
+            .replace ("\t", "")
+            .replace ("\n", "")
+            .replace ("\v", "")
+            .replace ("\f", "")
+            .replace ("\r", "")
+            .replace (".", "");
     }
 
 }
@@ -175,6 +250,7 @@ private class Souschef.AmountMatcher : Object {
 private delegate double Souschef.ValueExtractor (
     MatchInfo match_info
 ) throws ParsingError;
+
 private delegate string Souschef.UnitNameExtractor (
     MatchInfo match_info
 ) throws ParsingError;

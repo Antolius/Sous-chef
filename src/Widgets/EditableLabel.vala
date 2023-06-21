@@ -3,7 +3,7 @@
  * SPDX-FileCopyrightText: 2023 Josip Antoliš <josip.antolis@protonmail.com>
  */
 
-public class Souschef.EditableTitle : Gtk.Widget {
+public class Souschef.EditableLabel : Gtk.Widget {
 
     public signal void changed ();
 
@@ -11,7 +11,7 @@ public class Souschef.EditableTitle : Gtk.Widget {
 
     private Gtk.Stack stack;
 
-    public EditableTitle () {
+    public EditableLabel () {
         Object (
             layout_manager: new Gtk.BinLayout (),
             hexpand: true
@@ -22,18 +22,18 @@ public class Souschef.EditableTitle : Gtk.Widget {
         stack = new Gtk.Stack ();
         stack.set_parent (this);
 
-        var entry = new Gtk.Entry () {
-            hexpand = true,
-        };
+        var entry = new Gtk.Entry ();
         entry.buffer.set_text (text.data);
 
         var label = new Gtk.Label (text) {
-            hexpand = true,
+            halign = Gtk.Align.START,
+            valign = Gtk.Align.BASELINE,
             ellipsize = Pango.EllipsizeMode.END,
+            wrap = true,
         };
 
         var edit_btn = new Gtk.Button.from_icon_name ("edit-symbolic") {
-            tooltip_text = _("Edit title"),
+            tooltip_text = _("Edit"),
         };
         edit_btn.add_css_class (Granite.STYLE_CLASS_FLAT);
         edit_btn.clicked.connect (() => {
@@ -52,11 +52,22 @@ public class Souschef.EditableTitle : Gtk.Widget {
         static_row.append (btn_revealer);
 
         entry.activate.connect (() => {
-            stack.visible_child_name = "static";
             text = entry.buffer.get_text ();
             label.label = text;
+            stack.visible_child_name = "static";
+            btn_revealer.set_reveal_child (false);
             changed ();
         });
+
+        var escape_ctrl = new Gtk.EventControllerKey ();
+        escape_ctrl.key_released.connect (key => {
+            if (key == Gdk.Key.Escape) {
+                entry.buffer.set_text (text.data);
+                stack.visible_child_name = "static";
+                btn_revealer.set_reveal_child (false);
+            }
+        });
+        entry.add_controller (escape_ctrl);
 
         stack.add_named (static_row, "static");
         stack.add_named (entry, "editing");

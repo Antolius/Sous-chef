@@ -145,4 +145,17 @@ public class Souschef.PreferenceBasedAmountConverter : AmountConverter, Object {
             return str_equal (u1.name, u2.name);
         }
     }
+
+    public AmountConverter? inverse () {
+        var reverse_pref = new Gee.HashMap<Unit, Unit> (
+            unit_hash,
+            unit_equal
+        );
+
+        foreach (var entry in preferences.entries) {
+            reverse_pref[entry.value] = entry.key;
+        }
+
+        return new PreferenceBasedAmountConverter (reverse_pref);
+    }
 }

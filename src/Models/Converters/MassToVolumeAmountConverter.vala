@@ -44,4 +44,8 @@ public class Souschef.MassToVolumeAmountConverter : AmountConverter, Object {
         return convert (starting_amount) ?? starting_amount;
     }
 
+    public AmountConverter? inverse () {
+        return null;
+    }
+
 }
