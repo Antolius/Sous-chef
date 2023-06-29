@@ -3,17 +3,17 @@
  * SPDX-FileCopyrightText: 2023 Josip Antoliš <josip.antolis@protonmail.com>
  */
 
-public class Souschef.MassToVolumeAmountConverter : AmountConverter, Object {
+public class Souschef.ReferentUnitRationBasedAmountConverter : AmountConverter, Object {
 
-    public double referent_unit_mass_to_volume_ratio { get; construct; }
+    public double referent_unit_ratio { get; construct; }
     public Unit target_unit { get; construct; }
 
-    public MassToVolumeAmountConverter (
-        double referent_unit_mass_to_volume_ratio,
+    public ReferentUnitRationBasedAmountConverter (
+        double referent_unit_ratio,
         Unit target_unit
     ) {
         Object (
-            referent_unit_mass_to_volume_ratio: referent_unit_mass_to_volume_ratio,
+            referent_unit_ratio: referent_unit_ratio,
             target_unit: target_unit
         );
     }
@@ -24,7 +24,7 @@ public class Souschef.MassToVolumeAmountConverter : AmountConverter, Object {
             return false;
         }
 
-        return starting_unit.kind == UnitKind.MASS;
+        return true;
     }
 
     public Amount? convert (Amount starting_amount) {
@@ -32,12 +32,12 @@ public class Souschef.MassToVolumeAmountConverter : AmountConverter, Object {
             return null;
         }
 
-        var referent_mass_amount = starting_amount.to_referent_unit ();
-        var referent_volume_amount = new Amount () {
-            value = referent_mass_amount.value * referent_unit_mass_to_volume_ratio,
-            unit = target_unit.referent_unit,
+        var referent_source_amount = starting_amount.to_referent_unit ();
+        var referent_target_amount = new Amount () {
+            value = referent_source_amount.value * referent_unit_ratio,
+            unit = target_unit.referent_unit ?? target_unit,
         };
-        return referent_volume_amount.to_unit (target_unit);
+        return referent_target_amount.to_unit (target_unit);
     }
 
     public Amount convert_if_you_can (Amount starting_amount) {

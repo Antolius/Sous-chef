@@ -218,10 +218,15 @@ public class Souschef.RecipeView : Gtk.Widget {
                 valign = Gtk.Align.BASELINE,
             });
 
-            row.append (new EditableIngredient (
+            var editable_ingredient = new EditableIngredient (
                 converter_service,
                 ingredient
-            ));
+            );
+            editable_ingredient.changed.connect (updated => {
+                // TODO: implement proper change management
+                editable_ingredient.ingredient = updated;
+            });
+            row.append (editable_ingredient);
 
             return new Gtk.ListBoxRow () {
                 activatable = false,

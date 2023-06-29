@@ -9,26 +9,6 @@ public class Souschef.Ingredient : Object {
     public string? link { get; set; }
     public Amount? amount { get; set; }
 
-    public bool equals (Ingredient? other) {
-        if (other == null) {
-            return false;
-        }
-
-        if (name != other.name) {
-            return false;
-        }
-
-        if (link != other.link) {
-            return false;
-        }
-
-        if (amount != null) {
-            return amount.equals (other.amount);
-        }
-
-        return true;
-    }
-
     public string to_string () {
         string desc;
         if (link == null) {

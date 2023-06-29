@@ -58,22 +58,6 @@ public class Souschef.Amount : Object {
         return null;
     }
 
-    public bool equals (Amount? other) {
-        if (other == null) {
-            return false;
-        }
-
-        if (value != other.value) {
-            return false;
-        }
-
-        if (unit != null) {
-            return unit.equals (other.unit);
-        }
-
-        return true;
-    }
-
     public string to_string () {
         // TODO: implement fractions etc.
         var val_str = "%g".printf (round(value));

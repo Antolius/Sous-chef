@@ -20,14 +20,22 @@ public class Souschef.Unit : Object {
         return value_in_referent_unit / ratio_to_referent_unit;
     }
 
-    public bool equals (Unit? other) {
-        if (other == null) {
-            return false;
+    public static uint hash_func (Unit? u) {
+        if (u == null) {
+            return (uint)0xdeadbeef;
+        } else {
+            return str_hash (u.name);
         }
+    }
 
-        return kind == other.kind
-            && system == other.system
-            && name == other.name;
+    public static bool equal_func (Unit? u1, Unit? u2) {
+        if (u1 == u2) {
+            return true;
+        } else if (u1 == null || u2 == null) {
+            return false;
+        } else {
+            return str_equal (u1.name, u2.name);
+        }
     }
 
     public string to_string () {

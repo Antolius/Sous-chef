@@ -14,8 +14,8 @@ public class Souschef.PreferenceBasedAmountConverter : AmountConverter, Object {
 
     public PreferenceBasedAmountConverter.to_imperial () {
         var pref = new Gee.HashMap<Unit, Unit> (
-            unit_hash,
-            unit_equal
+            Unit.hash_func,
+            Unit.equal_func
         );
 
         pref[Units.GRAM] = Units.DRAM;
@@ -56,8 +56,8 @@ public class Souschef.PreferenceBasedAmountConverter : AmountConverter, Object {
 
     public PreferenceBasedAmountConverter.to_metric () {
         var pref = new Gee.HashMap<Unit, Unit> (
-            unit_hash,
-            unit_equal
+            Unit.hash_func,
+            Unit.equal_func
         );
 
         pref[Units.HUNDERWEIGHT] = Units.KILOGRAM;
@@ -128,28 +128,10 @@ public class Souschef.PreferenceBasedAmountConverter : AmountConverter, Object {
         return convert (starting_amount) ?? starting_amount;
     }
 
-    private static uint unit_hash (Unit u) {
-        if (u == null) {
-            return (uint)0xdeadbeef;
-        } else {
-            return str_hash (u.name);
-        }
-    }
-
-    private static bool unit_equal (Unit u1, Unit u2) {
-        if (u1 == u2) {
-            return true;
-        } else if (u1 == null || u2 == null) {
-            return false;
-        } else {
-            return str_equal (u1.name, u2.name);
-        }
-    }
-
     public AmountConverter? inverse () {
         var reverse_pref = new Gee.HashMap<Unit, Unit> (
-            unit_hash,
-            unit_equal
+            Unit.hash_func,
+            Unit.equal_func
         );
 
         foreach (var entry in preferences.entries) {

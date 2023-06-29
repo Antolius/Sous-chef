@@ -4,7 +4,9 @@ Your trusted kitchen companion.
 
 A recipes app based on [RecipeMD](https://github.com/tstehr/RecipeMD) specification made for [elementary OS](https://elementary.io/).
 
-![Default style screenshot](data/screenshots/default_style.png)
+|![Default style screenshot](data/screenshots/default_style_reading.png) |![Dark style screenshot](data/screenshots/dark_style_editing.png) |
+|------------------------------------------------------------------------|------------------------------------------------------------------|
+| Reading a recipe, showcasing the default style                         | Editing recipe ingredients, showcasing the dark style            |
 
 ## How to build from source
 

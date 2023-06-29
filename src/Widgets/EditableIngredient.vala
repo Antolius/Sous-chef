@@ -6,12 +6,12 @@
 public class Souschef.EditableIngredient : Gtk.Widget {
 
     public ConverterService converter_service { private get; construct; }
-    public Ingredient ingredient { private get; set construct; }
+    public Ingredient ingredient { get; set construct; }
 
     public bool mouse_over { get; private set; default = false; }
     public bool editing { get; private set; default = false; }
 
-    public signal void changed ();
+    public signal void changed (Ingredient updated_ingredient);
 
     private Gtk.Stack stack;
 
@@ -19,6 +19,9 @@ public class Souschef.EditableIngredient : Gtk.Widget {
     private Gtk.SpinButton value_entry;
     private Gtk.DropDown unit_picker;
     private Gtk.Entry name_entry;
+    private Gtk.Button convert_btn;
+
+    public Amount? edited_amount { get; private set; default = null; }
 
     public EditableIngredient (
         ConverterService converter_service,
@@ -31,6 +34,10 @@ public class Souschef.EditableIngredient : Gtk.Widget {
             hexpand: true,
             halign: Gtk.Align.FILL
         );
+    }
+
+    static construct {
+        new Density (); // Initialize static fields
     }
 
     construct {
@@ -92,7 +99,7 @@ public class Souschef.EditableIngredient : Gtk.Widget {
     }
 
     private Gtk.Box create_display_row () {
-        var row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
+        var row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 8);
 
         display_label = new Gtk.Label (null) {
             hexpand = false,
@@ -126,7 +133,7 @@ public class Souschef.EditableIngredient : Gtk.Widget {
     }
 
     private Gtk.Box create_editing_row () {
-        var row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
+        var row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 8);
 
         value_entry = new Gtk.SpinButton.with_range (0.0, double.MAX, 0.1) {
             numeric = true,
@@ -137,40 +144,61 @@ public class Souschef.EditableIngredient : Gtk.Widget {
         var unit_type = typeof (Unit);
         var units_store = new ListStore (unit_type);
         units_store.append (Units.NONE);
-        for (var i = 0; i < Units.ALL.size; i++) {
-            var unit = Units.ALL[i];
-            units_store.append (unit);
+        foreach (var u in Units.ALL) {
+            units_store.append (u);
         }
         var expression = new Gtk.PropertyExpression (unit_type, null, "name");
         unit_picker = new Gtk.DropDown (units_store, expression) {
+            tooltip_text = _("Change the unit"),
             enable_search = true,
         };
         row.append (unit_picker);
+
+        convert_btn = new Gtk.Button.from_icon_name ("accessories-calculator-symbolic") {
+            margin_start = 8,
+            tooltip_text = _("Convert into a different unit"),
+        };
+        convert_btn.add_css_class ("text-button");
+        convert_btn.clicked.connect (() => show_converter_dialog_for (ingredient));
+        row.append (convert_btn);
+
+        row.append (new Gtk.Separator (Gtk.Orientation.VERTICAL) {
+            margin_start = 8,
+            margin_end = 8,
+        });
 
         name_entry = new Gtk.Entry ();
         name_entry.buffer.set_text (ingredient.name.data);
         row.append (name_entry);
 
-        var accept = new Gtk.Button.from_icon_name ("object-select-symbolic") {
-            tooltip_text = _("Accept changes"),
+        var apply = new Gtk.Button.from_icon_name ("object-select-symbolic") {
+            tooltip_text = _("Apply changes"),
             halign = Gtk.Align.END,
+            margin_start = 8,
             hexpand = true,
         };
-        accept.clicked.connect (() => {
-            debug ("accept.clicked.connect");
+        apply.clicked.connect (() => {
             editing = false;
-        });
-        row.append (accept);
 
-        var dismiss = new Gtk.Button.from_icon_name ("window-close-symbolic") {
-            tooltip_text = _("Dismiss changes"),
+            changed (new Ingredient () {
+                name = name_entry.text,
+                link = ingredient.link,
+                amount = new Amount () {
+                    value = value_entry.value,
+                    unit = (Unit?) unit_picker.selected_item,
+                },
+            });
+        });
+        row.append (apply);
+
+        var cancel = new Gtk.Button.from_icon_name ("window-close-symbolic") {
+            tooltip_text = _("Cancel changes"),
             halign = Gtk.Align.END,
         };
-        dismiss.clicked.connect (() => {
-            debug ("dismiss.clicked.connect");
+        cancel.clicked.connect (() => {
             editing = false;
         });
-        row.append (dismiss);
+        row.append (cancel);
 
         return row;
     }
@@ -186,6 +214,7 @@ public class Souschef.EditableIngredient : Gtk.Widget {
             value_entry.digits = 1;
             value_entry.value = 1.0;
             unit_picker.selected = 0;
+            convert_btn.visible = false;
             name_entry.text = "";
             return;
         }
@@ -198,6 +227,7 @@ public class Souschef.EditableIngredient : Gtk.Widget {
             value_entry.digits = 1;
             value_entry.value = 1.0;
             unit_picker.selected = 0;
+            convert_btn.visible = false;
             return;
         }
 
@@ -212,6 +242,7 @@ public class Souschef.EditableIngredient : Gtk.Widget {
         var unit = amount.unit;
         if (unit == null) {
             unit_picker.selected = 0;
+            convert_btn.visible = false;
             return;
         }
 
@@ -223,9 +254,405 @@ public class Souschef.EditableIngredient : Gtk.Widget {
             }
         }
         unit_picker.selected = unit_idx;
+        convert_btn.visible = true;
+    }
+
+    private void show_converter_dialog_for (Ingredient? ingredient) {
+        if (ingredient?.amount?.unit == null) {
+            return;
+        }
+
+        var dialog = new Granite.Dialog () {
+            modal = true,
+            default_width = 360,
+            default_height = 240,
+        };
+        if (root != null && root is Gtk.Window) {
+            dialog.transient_for = (Gtk.Window) root;
+        }
+
+        var layout = create_converter_layout (ingredient);
+        dialog.get_content_area ().append (layout);
+        dialog.add_button (_("Cancel"), Gtk.ResponseType.CANCEL);
+        var apply = dialog.add_button (_("Convert"), Gtk.ResponseType.APPLY);
+        apply.add_css_class (Granite.STYLE_CLASS_SUGGESTED_ACTION);
+
+        dialog.response.connect ((response_id) => {
+            if (response_id == Gtk.ResponseType.APPLY && edited_amount != null) {
+                changed (new Ingredient () {
+                    name = ingredient.name,
+                    link = ingredient.link,
+                    amount = edited_amount,
+                });
+            }
+
+            dialog.destroy ();
+        });
+
+        dialog.show ();
+        editing = false;
+    }
+
+    private Gtk.Widget create_converter_layout (Ingredient ingredient) {
+        var amount = ingredient.amount;
+        var layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 32) {
+            margin_start = 16,
+            margin_end = 16,
+            margin_bottom = 16,
+        };
+
+        var stack = new Gtk.Stack () {
+            hhomogeneous = true,
+            vhomogeneous = true,
+            halign = Gtk.Align.CENTER,
+            valign = Gtk.Align.START,
+        };
+
+        var metric_units = new Gee.ArrayList<Unit> (Unit.equal_func);
+        var imperial_units = new Gee.ArrayList<Unit> (Unit.equal_func);
+        var mass_to_volume_units = new Gee.ArrayList<Unit> (Unit.equal_func);
+        var volume_to_mass_units = new Gee.ArrayList<Unit> (Unit.equal_func);
+
+        foreach (var unit in Units.ALL) {
+            if (unit == amount.unit) {
+                continue;
+            }
+
+            if (unit.kind == amount.unit.kind) {
+                if (unit.system == UnitSystem.METRIC) {
+                    metric_units.add (unit);
+                } else if (unit.system == UnitSystem.IMPERIAL) {
+                    imperial_units.add (unit);
+                }
+            }
+
+            if (unit.system == amount.unit.system) {
+                if (unit.kind == UnitKind.VOLUME && amount.unit.kind == UnitKind.MASS) {
+                    mass_to_volume_units.add (unit);
+                } else if (unit.kind == UnitKind.MASS && amount.unit.kind == UnitKind.VOLUME) {
+                    volume_to_mass_units.add (unit);
+                }
+            }
+        }
+
+        if (!metric_units.is_empty) {
+            var name = "metric";
+            var page = create_simple_converter_page (
+                amount, metric_units, stack, name
+            );
+            stack.add_titled (page, name, _("Into Metric"));
+        }
+
+        if (!imperial_units.is_empty) {
+            var name = "imperial";
+            var page = create_simple_converter_page (
+                amount, imperial_units, stack, name
+            );
+            stack.add_titled (page, name, _("Into Imperial"));
+        }
+
+        if (!mass_to_volume_units.is_empty) {
+            var name = "mass-to-volume";
+            var page = create_density_converter_page (
+                ingredient, mass_to_volume_units, stack, name
+            );
+            stack.add_titled (page, name, "Mass to Volume");
+        } else if (!volume_to_mass_units.is_empty) {
+            var name = "volume-to-mass";
+            var page = create_density_converter_page (
+                ingredient, volume_to_mass_units, stack, name
+            );
+            stack.add_titled (page, name, "Volume to Mass");
+        }
+
+        layout.append (new Gtk.StackSwitcher () {
+            stack = stack,
+        });
+        layout.append (stack);
+
+        return layout;
+    }
+
+    private Gtk.Widget create_simple_converter_page (
+        Amount amount,
+        Gee.List<Unit> target_units,
+        Gtk.Stack stack,
+        string page_name
+    ) {
+        var page = new Gtk.Box (Gtk.Orientation.VERTICAL, 8) {
+            halign = Gtk.Align.CENTER,
+        };
+
+        var prompt_txt = _("Converting %s into").printf (amount.to_string ());
+        page.append (new Gtk.Label (prompt_txt) {
+            halign = Gtk.Align.START,
+        });
+
+        var unit_type = typeof (Unit);
+        var units_store = new ListStore (unit_type);
+        units_store.append (Units.NONE);
+        foreach (var u in target_units) {
+            units_store.append (u);
+        }
+        var expression = new Gtk.PropertyExpression (unit_type, null, "name");
+        var unit_picker = new Gtk.DropDown (units_store, expression) {
+            halign = Gtk.Align.FILL,
+            enable_search = true,
+        };
+        unit_picker.notify["selected"].connect (() => {
+            perform_simple_conversion (amount, unit_picker.selected_item);
+        });
+        page.append (unit_picker);
+
+        var result_preview = new Gtk.Label ("") {
+            halign = Gtk.Align.START,
+        };
+        notify["edited-amount"].connect (() => {
+            if (edited_amount == null) {
+                result_preview.label = "";
+                return;
+            }
+
+            var txt = edited_amount.to_string ();
+            result_preview.label = _("results in %s").printf (txt);
+        });
+        page.append (result_preview);
+
+        stack.notify["visible-child-name"].connect (() => {
+            if (stack.visible_child_name == page_name) {
+                perform_simple_conversion (amount, unit_picker.selected_item);
+            }
+        });
+
+        return page;
+    }
+
+    private Gtk.Widget create_density_converter_page (
+        Ingredient ingredient,
+        Gee.List<Unit> target_units,
+        Gtk.Stack stack,
+        string page_name
+    ) {
+        var amount = ingredient.amount;
+        var page = new Gtk.Box (Gtk.Orientation.VERTICAL, 8) {
+            halign = Gtk.Align.CENTER,
+        };
+
+        var prompt_txt = _("Converting %s of %s into").printf (
+            amount.to_string (),
+            ingredient.name
+        );
+        page.append (new Gtk.Label (prompt_txt) {
+            max_width_chars = 128,
+            halign = Gtk.Align.START,
+            ellipsize = Pango.EllipsizeMode.END,
+        });
+
+        var unit_type = typeof (Unit);
+        var units_store = new ListStore (unit_type);
+        units_store.append (Units.NONE);
+        foreach (var u in target_units) {
+            units_store.append (u);
+        }
+        var expression = new Gtk.PropertyExpression (unit_type, null, "name");
+        var unit_picker = new Gtk.DropDown (units_store, expression) {
+            halign = Gtk.Align.FILL,
+            enable_search = true,
+        };
+        page.append (unit_picker);
+
+        page.append (new Gtk.Label (_("based on the density of")) {
+            halign = Gtk.Align.START,
+        });
+
+        var density_type = typeof (Density);
+        var densities_store = new ListStore (density_type);
+        densities_store.append (Density.NONE);
+        foreach (var d in generate_densities_for (page_name)) {
+            densities_store.append (d);
+        }
+        var density_expression = new Gtk.PropertyExpression (density_type, null, "name");
+        var density_picker = new Gtk.DropDown (densities_store, density_expression) {
+            halign = Gtk.Align.FILL,
+            enable_search = true,
+        };
+        page.append (density_picker);
+
+        unit_picker.notify["selected"].connect (() => {
+            perform_density_conversion (
+                amount,
+                unit_picker.selected_item,
+                density_picker.selected_item
+            );
+        });
+        density_picker.notify["selected"].connect (() => {
+            perform_density_conversion (
+                amount,
+                unit_picker.selected_item,
+                density_picker.selected_item
+            );
+        });
+
+        var result_preview = new Gtk.Label ("") {
+            halign = Gtk.Align.START,
+        };
+        notify["edited-amount"].connect (() => {
+            if (edited_amount == null) {
+                result_preview.label = "";
+                return;
+            }
+
+            var txt = edited_amount.to_string ();
+            result_preview.label = _("results in %s").printf (txt);
+        });
+        page.append (result_preview);
+
+        stack.notify["visible-child-name"].connect (() => {
+            if (stack.visible_child_name == page_name) {
+                perform_density_conversion (
+                    amount,
+                    unit_picker.selected_item,
+                    density_picker.selected_item
+                );
+            }
+        });
+
+        return page;
+    }
+
+    private void perform_simple_conversion (Amount amount, Object? selected_unit) {
+        var target_unit = (Unit) selected_unit;
+        if (target_unit == null || target_unit == Units.NONE) {
+            edited_amount = null;
+            return;
+        }
+
+        edited_amount = amount.to_unit (target_unit);
+    }
+
+    private Density[] generate_densities_for (string page_name) {
+        if (page_name == "volume-to-mass") {
+            return Density.ALL;
+        }
+
+        Density[] volume_to_mass_densities = {};
+        foreach (var d in Density.ALL) {
+            volume_to_mass_densities += new Density () {
+                name = d.name,
+                ratio = 1.0 / d.ratio,
+            };
+        }
+        return volume_to_mass_densities;
+    }
+
+    private void perform_density_conversion (
+        Amount amount,
+        Object? selected_unit,
+        Object? selected_referent_unit_density
+    ) {
+        var target_unit = (Unit) selected_unit;
+        if (target_unit == null || target_unit == Units.NONE) {
+            edited_amount = null;
+            return;
+        }
+
+        var density = (Density) selected_referent_unit_density;
+        if (density == null || density == Density.NONE) {
+            edited_amount = null;
+            return;
+        }
+
+        var converter = new ReferentUnitRationBasedAmountConverter (
+            density.ratio,
+            target_unit
+        );
+        edited_amount = converter.convert (amount);
     }
 
     public override void dispose () {
         stack.unparent ();
     }
+}
+
+private delegate Unit? Souschef.ConvertFunc (Unit source);
+
+public class Souschef.Density : Object {
+    public string name { get; set; }
+    public double ratio { get; set; }
+
+    public Density () {
+        Object ();
+    }
+
+    public static Density NONE = new Density () {
+        name = "",
+        ratio = 1.0,
+    };
+
+    public static Density[] ALL = {
+        new Density () {
+            name = _("Water"),
+            ratio = 1000.0
+        },
+        new Density () {
+            name = _("Milk"),
+            ratio = 1030.0
+        },
+        new Density () {
+            name = _("Wheat Flour"),
+            ratio = 600.0
+        },
+        new Density () {
+            name = _("Soy Flour"),
+            ratio = 680.0
+        },
+        new Density () {
+            name = _("Corn Starch Flour"),
+            ratio = 650.0
+        },
+        new Density () {
+            name = _("Shugar"),
+            ratio = 845.0
+        },
+        new Density () {
+            name = _("Brown Shugar"),
+            ratio = 800.0
+        },
+        new Density () {
+            name = _("Powdered Shugar"),
+            ratio = 560.0
+        },
+        new Density () {
+            name = _("Salt"),
+            ratio = 1217.0
+        },
+        new Density () {
+            name = _("Honey"),
+            ratio = 1420.0
+        },
+        new Density () {
+            name = _("Butter"),
+            ratio = 959.0
+        },
+        new Density () {
+            name = _("Sunflower oil"),
+            ratio = 960.0
+        },
+        new Density () {
+            name = _("Olive oil"),
+            ratio = 918.0
+        },
+        new Density () {
+            name = _("Raw Rice"),
+            ratio = 850.0
+        },
+        new Density () {
+            name = _("Light Cream"),
+            ratio = 1030.0
+        },
+        new Density () {
+            name = _("Heavy Cream"),
+            ratio = 984.0
+        }
+    };
 }
