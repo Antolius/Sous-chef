@@ -93,4 +93,35 @@ Soup reheats really well. Thin with more broth or water if it becomes a little t
 8. Carefully add *300g* blueberrys to the dough.
 9. Bake three small pancakes on medium heat in a pan about *2* minutes until golden.
 
-10. Serve warm with the vanilla cream and some maple syrup.');
+10. Serve warm with the vanilla cream and some maple syrup.'),
+    (4, 'Recipe with ingredient groups', NULL, '# Recipe with ingredient groups
+
+---
+
+- ingredient 0
+
+## Group 1
+
+- ingredient 1
+- ingredient 2
+
+### Subgroup 1.1
+
+- ingredient 3
+- ingredient 4
+
+##### Subgroup 1.1.1 (Two level deeper headline, still one lever deeper group)
+
+- ingredient 5
+
+#### Subgroup 1.1.2 (One level deeper headline)
+
+- ingredient 6
+
+# Group 2
+
+- ingredient 7
+- ingredient 8
+
+---
+');

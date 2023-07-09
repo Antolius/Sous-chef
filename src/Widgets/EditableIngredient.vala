@@ -43,6 +43,7 @@ public class Souschef.EditableIngredient : Gtk.Widget {
     construct {
         set_up_controllers ();
         stack = create_stack ();
+        stack.set_parent (this);
         update_widget_states ();
         listen_to_property_changes ();
     }
@@ -52,7 +53,6 @@ public class Souschef.EditableIngredient : Gtk.Widget {
             hhomogeneous = false,
             interpolate_size = true,
         };
-        stack.set_parent (this);
 
         var display_row = create_display_row ();
         var editing_row = create_editing_row ();
@@ -197,6 +197,7 @@ public class Souschef.EditableIngredient : Gtk.Widget {
         };
         cancel.clicked.connect (() => {
             editing = false;
+            update_widget_states ();
         });
         row.append (cancel);
 

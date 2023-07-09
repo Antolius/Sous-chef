@@ -174,76 +174,10 @@ public class Souschef.RecipeView : Gtk.Widget {
     private Gtk.Widget create_ingredient_groups (
         Gee.List<IngredientGroup> ingredient_groups
     ) {
-        var groups = new Gtk.Box (Gtk.Orientation.VERTICAL, 16);
-        var is_first = true;
-        foreach (var group in ingredient_groups) {
-            string? title = null;
-            if (group.title != null && group.title.length > 0) {
-                title = group.title;
-
-            } else if (is_first) {
-                title = _("Ingredients");
-            }
-            is_first = false;
-
-            if (title != null) {
-                var title_label = new Gtk.Label (title) {
-                    halign = Gtk.Align.START,
-                    wrap = true,
-                };
-                title_label.add_css_class (Granite.STYLE_CLASS_H3_LABEL);
-                groups.append (title_label);
-            }
-
-            groups.append (create_ingredients (group.ingredients));
-        }
-        return groups;
-    }
-
-    private Gtk.Widget create_ingredients (
-        Gee.List<Ingredient> ingredients
-    ) {
-        var list = new Gtk.ListBox ();
-        list.add_css_class ("souschef-unselectable-children");
-
-        var store = convert_to_store (ingredients);
-        list.bind_model (store, (element) => {
-            var ingredient = (Ingredient) element;
-
-            var row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 4) {
-                margin_bottom = 8,
-            };
-
-            row.append (new Gtk.CheckButton () {
-                valign = Gtk.Align.BASELINE,
-            });
-
-            var editable_ingredient = new EditableIngredient (
-                converter_service,
-                ingredient
-            );
-            editable_ingredient.changed.connect (updated => {
-                // TODO: implement proper change management
-                editable_ingredient.ingredient = updated;
-            });
-            row.append (editable_ingredient);
-
-            return new Gtk.ListBoxRow () {
-                activatable = false,
-                selectable = false,
-                child = row,
-            };
-        });
-
-        return list;
-    }
-
-    private ListStore convert_to_store (Gee.List<Ingredient> source) {
-        var store = new ListStore (typeof (Ingredient));
-        foreach (var ingredient in source) {
-            store.append (ingredient);
-        }
-        return store;
+        return new EditableIngredientGroups (
+            converter_service,
+            ingredient_groups
+        );
     }
 
     public override void dispose () {

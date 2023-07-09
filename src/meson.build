@@ -38,6 +38,7 @@ common_sources = files(
     'Views/LibraryView.vala',
     'Views/RecipeView.vala',
     'Widgets/EditableIngredient.vala',
+    'Widgets/EditableIngredientGroups.vala',
     'Widgets/EditableLabel.vala',
     'Widgets/RecipeHeader.vala',
     'Widgets/TagPill.vala',
